@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
-  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, layout = 'default' }, ref) => {
+  ({ userName, bgImageUrl, userPhotoUrl, width = 1080 }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
@@ -51,25 +51,12 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       // X: 1321.2 px, Y: 720.3 px
       // Rotate: -10.2 degrees
       
-      let rx = (1321.2 / baseW) * width;
-      let ry = (720.3 / baseH) * h;
-      let rw = (998 / baseW) * width;
-      let rh = (1014.1 / baseH) * h;
+      // Apply coordinates universally to both layouts (user requested earbuds size for sparrow)
+      const rx = ((1321.2 + 190) / baseW) * width;
+      const ry = ((720.3 + 100) / baseH) * h;
+      const rw = ((998 - 190) / baseW) * width;
+      const rh = (974.1 / baseH) * h;
       const angle = -10.2 * (Math.PI / 180);
-
-      if (layout === 'earbuds') {
-         // Pulling left edge 190px right, and top edge 100px down
-         rx = ((1321.2 + 190) / baseW) * width;
-         ry = ((720.3 + 100) / baseH) * h;
-         
-         // Reducing width by 190 to lock the right edge where it was
-         rw = ((998 - 190) / baseW) * width;
-         
-         // Releasing bottom: keeping it extended only 60px past the original 1014.1 size
-         // Old ry (720.3) + old rh (1014.1) + 60 = 1794.4 (bottom edge)
-         // New rh = 1794.4 - new ry (820.3) = 974.1
-         rh = (974.1 / baseH) * h;
-      }
 
       if (userPhotoUrl) {
         try {
@@ -98,9 +85,9 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         const fontMontserrat = getComputedStyle(document.documentElement)
           .getPropertyValue('--font-montserrat') || 'Montserrat';
 
-        // Base coordinate for name from new provided box:
+        // Right-aligned to the right edge of the provided box
         // X: 992.4, Y: 1950.4, Width: 1345.9, Height: 185.1
-        const nameXBase = 992.4 + (1345.9 / 2);
+        const nameXBase = 992.4 + 1345.9; // Right edge
         const nameYBase = 1950.4 + (185.1 / 2);
         
         const nameX = (nameXBase / baseW) * width;
@@ -112,7 +99,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur  = 0;
-        ctx.textAlign   = 'center';
+        ctx.textAlign   = 'right';
         ctx.textBaseline = 'middle';
         ctx.font        = `700 ${fs}px ${fontMontserrat}, sans-serif`;
         ctx.fillStyle   = '#1a2744';
@@ -129,7 +116,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       ctx.shadowBlur = 0;
       ctx.fillText('pledgemarks.com', width - 20 * scale, h - 16 * scale);
 
-    }, [userName, bgImageUrl, userPhotoUrl, width, layout]);
+    }, [userName, bgImageUrl, userPhotoUrl, width]);
 
     useEffect(() => { draw(); }, [draw]);
 

@@ -314,7 +314,7 @@ function PledgePreview({ userData, pledge, onBack, onConfirm }: { userData: User
           bgImageUrl={pledge.bgImageUrl}
           userPhotoUrl={userData.photoUrl}
           width={800} // higher res for better anti-aliasing in preview
-          layout={['house-sparrow', 'sustainable-101', 'wooden-earbuds'].includes(pledge.slug) ? 'sparrow' : 'default'}
+          layout={['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default'}
         />
       </div>
 
@@ -473,7 +473,7 @@ function PledgeSuccess({ pledge, userData, onReturnHome }: { pledge: PledgeWithC
           bgImageUrl={pledge.bgImageUrl}
           userPhotoUrl={userData.photoUrl}
           width={1080}
-          layout={['house-sparrow', 'sustainable-101', 'wooden-earbuds'].includes(pledge.slug) ? 'sparrow' : 'default'}
+          layout={['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default'}
         />
       </div>
 
@@ -485,7 +485,7 @@ function PledgeSuccess({ pledge, userData, onReturnHome }: { pledge: PledgeWithC
           bgImageUrl={pledge.bgImageUrl}
           userPhotoUrl={userData.photoUrl}
           width={800} // Same nice preview size
-          layout={['house-sparrow', 'sustainable-101', 'wooden-earbuds'].includes(pledge.slug) ? 'sparrow' : 'default'}
+          layout={['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default'}
         />
       </div>
 
