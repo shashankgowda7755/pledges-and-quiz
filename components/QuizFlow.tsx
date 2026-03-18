@@ -185,6 +185,14 @@ function CameraModal({ onCapture, onClose }: { onCapture: (src: string) => void;
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
+      {/* Close button — always visible top-right */}
+      <button
+        onClick={stopAndClose}
+        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white backdrop-blur-sm"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
       {error ? (
         <div className="flex-1 flex flex-col items-center justify-center text-white text-center p-8 gap-6">
           <Camera className="w-12 h-12 text-gray-500" />
@@ -194,12 +202,26 @@ function CameraModal({ onCapture, onClose }: { onCapture: (src: string) => void;
       ) : (
         <>
           <video ref={videoRef} autoPlay playsInline muted className="flex-1 w-full object-cover" />
-          <div className="p-6 flex justify-between items-center bg-black/80">
-            <button onClick={stopAndClose} className="text-white font-bold text-sm px-4 py-2">Cancel</button>
-            <button onClick={capture} className="w-20 h-20 rounded-full bg-white border-4 border-gray-400 shadow-lg active:scale-95 transition-transform" />
-            <button onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')} className="text-white p-2">
-              <RefreshCw className="w-6 h-6" />
+          <div className="px-8 py-6 flex justify-between items-center bg-black">
+            {/* Flip camera */}
+            <button
+              onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
+              className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white"
+            >
+              <RefreshCw className="w-5 h-5" />
             </button>
+
+            {/* Shutter button */}
+            <button
+              onClick={capture}
+              className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"
+              style={{ boxShadow: '0 0 0 4px rgba(255,255,255,0.3)' }}
+            >
+              <div className="w-16 h-16 rounded-full bg-white border-4 border-black" />
+            </button>
+
+            {/* Spacer to balance layout */}
+            <div className="w-12 h-12" />
           </div>
         </>
       )}
