@@ -6,6 +6,8 @@ const schema = z.object({
   pledgeId: z.string(),
   userName: z.string().min(1),
   userEmail: z.string().email(),
+  whatsapp: z.string().optional(),
+  agreed: z.boolean().optional(),
   orgId: z.string().optional()
 });
 
@@ -32,6 +34,8 @@ export async function POST(request: Request) {
         pledgeId: data.pledgeId,
         userName: data.userName,
         userEmail: data.userEmail,
+        whatsapp: data.whatsapp,
+        agreed: data.agreed ?? false,
         ...(data.orgId && { orgId: data.orgId })
       }
     });

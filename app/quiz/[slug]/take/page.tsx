@@ -37,7 +37,7 @@ export default async function TakeQuizPage(context: { params: Promise<{ slug: st
     <div className="min-h-screen flex flex-col bg-[#F2F0E9] relative">
       <Header />
       <div className="flex-1">
-        <QuizFlow quiz={quiz as any} />
+        <QuizFlow quiz={quiz!} />
       </div>
     </div>
   );

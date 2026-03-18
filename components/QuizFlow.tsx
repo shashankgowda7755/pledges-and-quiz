@@ -1,13 +1,16 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Quiz, Question, AnswerOption } from '@prisma/client';
 import { PledgePosterCanvas } from './PledgePosterCanvas';
 import { downloadPoster, sharePoster } from '@/utils/downloadPoster';
-import { Check, X, Loader2 } from 'lucide-react';
+import { Check, X, Loader2, Camera, Edit2 } from 'lucide-react';
 import Link from 'next/link';
+import Cropper from 'react-easy-crop';
+import type { Area } from 'react-easy-crop';
+import getCroppedImg from '@/utils/cropImage';
 
-type QuestionWithOptions = Omit<Question, 'quizId'> & { 
-  answerOptions: Omit<AnswerOption, 'isCorrect' | 'questionId'>[] 
+type QuestionWithOptions = Omit<Question, 'quizId'> & {
+  answerOptions: Omit<AnswerOption, 'isCorrect' | 'questionId'>[]
 };
 type QuizWithQuestions = Quiz & { questions: QuestionWithOptions[] };
 
@@ -16,15 +19,17 @@ type QuizStep = 'form' | 'quiz' | 'preview' | 'success';
 interface UserData {
   fullName: string;
   email: string;
+  whatsapp: string;
+  photoUrl: string | null;
+  agreed: boolean;
   orgId?: string;
 }
 
 export function QuizFlow({ quiz }: { quiz: QuizWithQuestions }) {
-  const [currentStep, setCurrentStep]         = useState<QuizStep>('form');
+  const [currentStep, setCurrentStep] = useState<QuizStep>('form');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userData, setUserData]               = useState<UserData>({ fullName: '', email: '' });
-  const [answers, setAnswers]                 = useState<Record<string, string>>({});
-  const [scoreData, setScoreData]             = useState<{ score: number, total: number } | null>(null);
+  const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true });
+  const [scoreData, setScoreData] = useState<{ score: number, total: number } | null>(null);
 
   const goToStep = (step: QuizStep) => {
     setIsTransitioning(true);
@@ -37,46 +42,42 @@ export function QuizFlow({ quiz }: { quiz: QuizWithQuestions }) {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-      {/* Film grain texture */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03] mix-blend-multiply bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       {/* Top light gradient */}
       <div className="fixed top-0 left-0 w-full h-[50vh] bg-gradient-to-b from-stone-200/40 to-transparent pointer-events-none z-0" />
-      
+
       <main className={`relative z-10 max-w-2xl flex flex-col justify-center min-h-[90vh] mx-auto px-4 py-12 transition-opacity duration-200 ease-in-out ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
         {currentStep === 'form' && (
-          <QuizForm 
-            quiz={quiz} 
-            onSubmit={(data) => { setUserData(data); goToStep('quiz'); }} 
+          <QuizForm
+            quiz={quiz}
+            onSubmit={(data) => { setUserData(data); goToStep('quiz'); }}
           />
         )}
         {currentStep === 'quiz' && (
-          <QuizEngine 
-            quiz={quiz} 
+          <QuizEngine
+            quiz={quiz}
             userData={userData}
-            onComplete={(answersRecord, scoreRes) => { 
-                setAnswers(answersRecord);
-                setScoreData(scoreRes);
-                goToStep('preview'); 
+            onComplete={(_answers, scoreRes) => {
+              setScoreData(scoreRes);
+              goToStep('preview');
             }}
           />
         )}
         {currentStep === 'preview' && (
-          <QuizCertPreview 
-            quiz={quiz} 
+          <QuizCertPreview
+            quiz={quiz}
             userData={userData}
             scoreData={scoreData}
             onRetake={() => {
-                setAnswers({});
-                setScoreData(null);
-                goToStep('form');
+              setScoreData(null);
+              goToStep('form');
             }}
-            onConfirm={() => goToStep('success')} 
+            onConfirm={() => goToStep('success')}
           />
         )}
         {currentStep === 'success' && (
-          <QuizSuccess 
-            quiz={quiz} 
-            userData={userData} 
+          <QuizSuccess
+            quiz={quiz}
+            userData={userData}
           />
         )}
       </main>
@@ -84,69 +85,219 @@ export function QuizFlow({ quiz }: { quiz: QuizWithQuestions }) {
   );
 }
 
-function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data: UserData) => void }) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+function PhotoCropModal({ imageSrc, onClose, onCropSave }: {
+  imageSrc: string;
+  onClose: () => void;
+  onCropSave: (cropped: string) => void;
+}) {
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (fullName && email) onSubmit({ fullName, email });
+  const onCropComplete = useCallback((_: Area, cap: Area) => {
+    setCroppedAreaPixels(cap);
+  }, []);
+
+  const handleSave = async () => {
+    if (!croppedAreaPixels) return;
+    try {
+      const result = await getCroppedImg(imageSrc, croppedAreaPixels);
+      if (result) onCropSave(result);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-xl mx-auto w-full">
-      <h2 className="text-2xl font-montserrat font-bold text-gray-900 mb-2">Before we start...</h2>
-      <p className="text-gray-500 mb-8">Enter your details for the certificate. No login required.</p>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name*</label>
-          <input 
-            type="text" 
-            required 
-            value={fullName}
-            onChange={e => setFullName(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
-            placeholder="How you want your name on the certificate"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <div className="bg-white rounded-[1.5rem] w-full max-w-md overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+          <h3 className="font-bold text-gray-800 flex items-center gap-2">
+            <Edit2 className="w-4 h-4 text-teal-500" /> Adjust Photo
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="relative w-full h-[300px] sm:h-[380px] bg-black">
+          <Cropper
+            image={imageSrc}
+            crop={crop}
+            zoom={zoom}
+            aspect={1}
+            cropShape="round"
+            showGrid={false}
+            onCropChange={setCrop}
+            onCropComplete={onCropComplete}
+            onZoomChange={setZoom}
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email Address*</label>
-          <input 
-            type="email" 
-            required 
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
-          />
+        <div className="p-4 bg-white flex justify-end gap-3 border-t border-gray-100">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition-colors">
+            Cancel
+          </button>
+          <button onClick={handleSave} className="px-5 py-2.5 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 shadow-md transition-colors">
+            Save Photo
+          </button>
         </div>
-        <button 
-          type="submit" 
-          disabled={!fullName || !email}
-          className={fullName && email
-            ? "w-full py-4 rounded-full bg-teal-500 hover:bg-teal-600 text-white font-semibold transition-colors mt-4"
-            : "w-full py-4 rounded-full bg-gray-200 text-gray-400 cursor-not-allowed font-semibold mt-4"}
-        >
-          Start Quiz →
-        </button>
-      </form>
+      </div>
     </div>
   );
 }
 
-function QuizEngine({ quiz, userData, onComplete }: { 
-    quiz: QuizWithQuestions, 
-    userData: UserData,
-    onComplete: (answers: Record<string, string>, scoreRes: { score: number, total: number }) => void 
+function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data: UserData) => void }) {
+  const [formData, setFormData] = useState<UserData>({
+    fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true
+  });
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef  = useRef<HTMLInputElement>(null);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setRawImageSrc(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const isValid = formData.fullName.length > 2 && formData.email.includes('@') && formData.email.includes('.') && formData.whatsapp.length > 5;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isValid) onSubmit(formData);
+  };
+
+  return (
+    <>
+      {rawImageSrc && (
+        <PhotoCropModal
+          imageSrc={rawImageSrc}
+          onClose={() => setRawImageSrc(null)}
+          onCropSave={(cropped) => { setFormData(f => ({ ...f, photoUrl: cropped })); setRawImageSrc(null); }}
+        />
+      )}
+
+      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 md:p-12 text-center max-w-xl mx-auto w-full">
+        <div className="inline-block px-4 py-1.5 rounded-full bg-teal-50 text-teal-600 font-bold text-[10px] uppercase tracking-widest mb-4">
+          QUIZ: {quiz.title.toUpperCase()}
+        </div>
+        <h2 className="text-3xl font-extrabold text-[#111827] mb-2 tracking-tight">Before we start...</h2>
+        <p className="text-gray-500 mb-8">Enter your details for the certificate. No login required.</p>
+
+        {/* Photo Upload */}
+        <div className="flex flex-col items-center mb-10">
+          <div
+            onClick={() => galleryRef.current?.click()}
+            className="w-24 h-24 rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors relative overflow-hidden group"
+          >
+            {formData.photoUrl ? (
+              <img src={formData.photoUrl} className="w-full h-full object-cover" alt="You" />
+            ) : (
+              <Camera className="w-7 h-7 text-gray-300 group-hover:text-gray-400 transition-colors" />
+            )}
+            <div className="absolute right-0 bottom-0 w-7 h-7 bg-teal-500 rounded-full flex items-center justify-center border-2 border-white">
+              <Edit2 className="w-3.5 h-3.5 text-white" />
+            </div>
+          </div>
+
+          {/* Hidden inputs */}
+          <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <input ref={cameraRef}  type="file" accept="image/*" capture="user" className="hidden" onChange={handleFile} />
+
+          <div className="flex gap-4 mt-4 text-[10px] font-bold text-teal-600 uppercase tracking-widest">
+            <button type="button" onClick={() => galleryRef.current?.click()} className="hover:text-teal-700 transition-colors">
+              Gallery
+            </button>
+            <div className="w-[1px] h-3 bg-gray-300 self-center" />
+            <button type="button" onClick={() => cameraRef.current?.click()} className="hover:text-teal-700 transition-colors">
+              Camera
+            </button>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-1">Optional — appears on your certificate</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6 text-left">
+          <div>
+            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">FULL NAME*</label>
+            <input
+              type="text"
+              required
+              value={formData.fullName}
+              onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
+              placeholder="How you want your name on the certificate"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">WHATSAPP*</label>
+              <div className="flex">
+                <div className="bg-gray-50/50 border border-gray-200 border-r-0 rounded-l-xl px-4 py-3.5 text-xs text-gray-600 font-medium flex items-center justify-center whitespace-nowrap">
+                  India (+91)
+                </div>
+                <input
+                  type="tel"
+                  required
+                  value={formData.whatsapp}
+                  onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
+                  className="w-full bg-gray-50/50 border border-gray-200 rounded-r-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
+                  placeholder="98765 43210"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">EMAIL*</label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
+                placeholder="name@example.com"
+              />
+            </div>
+          </div>
+
+          <label className="flex items-start gap-4 cursor-pointer group pt-2">
+            <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-colors ${formData.agreed ? 'bg-teal-500 border-teal-500' : 'bg-gray-50 border-gray-300 group-hover:border-gray-400'}`}>
+              <input type="checkbox" className="hidden" checked={formData.agreed} onChange={e => setFormData({ ...formData, agreed: e.target.checked })} />
+              {formData.agreed && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+            </div>
+            <span className="text-xs text-gray-600 leading-snug select-none">
+              I agree to receive information about similar initiatives in the future. (Optional)
+            </span>
+          </label>
+
+          <button
+            type="submit"
+            disabled={!isValid}
+            className={`w-full py-4 rounded-xl font-bold text-[15px] transition-all mt-4
+              ${isValid ? 'bg-teal-500 text-white hover:bg-teal-600 shadow-lg shadow-teal-500/20' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+          >
+            Start Quiz <span className="ml-1">›</span>
+          </button>
+        </form>
+      </div>
+    </>
+  );
+}
+
+function QuizEngine({ quiz, userData, onComplete }: {
+  quiz: QuizWithQuestions,
+  userData: UserData,
+  onComplete: (answers: Record<string, string>, scoreRes: { score: number, total: number }) => void
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answerState, setAnswerState] = useState<'idle' | 'selected' | 'verifying' | 'revealed'>('idle');
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [correctOptionId, setCorrectOptionId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  
+
   const question = quiz.questions[currentIndex];
-  
+
   const isCorrect = selectedOptionId === correctOptionId;
   const mood = answerState === 'revealed' ? (isCorrect ? 'happy' : 'sad') : 'neutral';
   const moodColor = mood === 'neutral' ? 'bg-stone-200' : (mood === 'happy' ? 'bg-teal-500' : 'bg-red-400');
@@ -163,9 +314,9 @@ function QuizEngine({ quiz, userData, onComplete }: {
 
     try {
       const res = await fetch('/api/verify-answer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questionId: question.id, optionId: selectedOptionId })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId: question.id, optionId: selectedOptionId })
       });
       const data = await res.json();
       setCorrectOptionId(data.correctOptionId);
@@ -174,7 +325,7 @@ function QuizEngine({ quiz, userData, onComplete }: {
       setTimeout(async () => {
         const newAnswers = { ...answers, [question.id]: selectedOptionId };
         setAnswers(newAnswers);
-        
+
         if (currentIndex < quiz.questions.length - 1) {
           setCurrentIndex(currentIndex + 1);
           setAnswerState('idle');
@@ -182,22 +333,24 @@ function QuizEngine({ quiz, userData, onComplete }: {
           setCorrectOptionId(null);
         } else {
           const attemptRes = await fetch('/api/quiz-attempts', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  quizId: quiz.id,
-                  userName: userData.fullName,
-                  userEmail: userData.email,
-                  orgId: userData.orgId,
-                  answers: newAnswers
-              })
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quizId: quiz.id,
+              userName: userData.fullName,
+              userEmail: userData.email,
+              whatsapp: userData.whatsapp,
+              agreed: userData.agreed,
+              orgId: userData.orgId,
+              answers: newAnswers
+            })
           });
           const attemptData = await attemptRes.json();
           onComplete(newAnswers, { score: attemptData.score, total: attemptData.totalQuestions });
         }
-      }, 2000); 
+      }, 2000);
     } catch (e) {
-        console.error(e);
+      console.error(e);
     }
   };
 
@@ -206,7 +359,7 @@ function QuizEngine({ quiz, userData, onComplete }: {
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-xl mx-auto w-full relative">
       <div className={`fixed bottom-6 right-6 w-12 h-12 rounded-full transition-colors duration-500 shadow-lg ${moodColor}`} />
-      
+
       <div className="mb-8">
         <div className="flex justify-between text-sm font-medium text-gray-500 mb-3">
           <span>Question {currentIndex + 1} of {quiz.questions.length}</span>
@@ -220,62 +373,68 @@ function QuizEngine({ quiz, userData, onComplete }: {
 
       <div className="space-y-3 mb-8">
         {question.answerOptions.map((opt) => {
-            const isSelected = selectedOptionId === opt.id;
-            const isActuallyCorrect = correctOptionId === opt.id;
-            
-            let optStyle = "border-gray-200 hover:border-yellow-400 hover:bg-gray-50";
-            if (answerState === 'selected') {
-                optStyle = isSelected ? "border-yellow-400 ring-2 ring-yellow-400/20 bg-yellow-50 scale-[1.02]" : "border-gray-200 opacity-75";
-            } else if (answerState === 'verifying') {
-                optStyle = isSelected ? "border-yellow-400 ring-2 ring-yellow-400/20 bg-yellow-50 animate-pulse" : "border-gray-200 opacity-50";
-            } else if (answerState === 'revealed') {
-                if (isActuallyCorrect) {
-                   optStyle = "border-green-500 bg-green-100 scale-[1.02] text-green-900";
-                } else if (isSelected && !isActuallyCorrect) {
-                   optStyle = "border-red-500 bg-red-100 text-red-900";
-                } else {
-                   optStyle = "border-gray-200 opacity-50 blur-[1px]";
-                }
-            }
+          const isSelected = selectedOptionId === opt.id;
+          const isActuallyCorrect = correctOptionId === opt.id;
 
-            return (
-                <button
-                    key={opt.id}
-                    onClick={() => handleSelect(opt.id)}
-                    disabled={answerState !== 'idle'}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 font-medium text-gray-800 flex justify-between items-center ${optStyle}`}
-                >
-                    <span>{opt.text}</span>
-                    {answerState === 'revealed' && isActuallyCorrect && <Check className="w-5 h-5 text-green-600" />}
-                    {answerState === 'revealed' && isSelected && !isActuallyCorrect && <X className="w-5 h-5 text-red-600" />}
-                </button>
-            );
+          let optStyle = "border-gray-200 hover:border-yellow-400 hover:bg-gray-50";
+          if (answerState === 'selected') {
+            optStyle = isSelected ? "border-yellow-400 ring-2 ring-yellow-400/20 bg-yellow-50 scale-[1.02]" : "border-gray-200 opacity-75";
+          } else if (answerState === 'verifying') {
+            optStyle = isSelected ? "border-yellow-400 ring-2 ring-yellow-400/20 bg-yellow-50 animate-pulse" : "border-gray-200 opacity-50";
+          } else if (answerState === 'revealed') {
+            if (isActuallyCorrect) {
+              optStyle = "border-green-500 bg-green-100 scale-[1.02] text-green-900";
+            } else if (isSelected && !isActuallyCorrect) {
+              optStyle = "border-red-500 bg-red-100 text-red-900";
+            } else {
+              optStyle = "border-gray-200 opacity-50 blur-[1px]";
+            }
+          }
+
+          return (
+            <button
+              key={opt.id}
+              onClick={() => handleSelect(opt.id)}
+              disabled={answerState !== 'idle'}
+              className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 font-medium text-gray-800 flex justify-between items-center ${optStyle}`}
+            >
+              <span>{opt.text}</span>
+              {answerState === 'revealed' && isActuallyCorrect && <Check className="w-5 h-5 text-green-600" />}
+              {answerState === 'revealed' && isSelected && !isActuallyCorrect && <X className="w-5 h-5 text-red-600" />}
+            </button>
+          );
         })}
       </div>
 
       <div className="h-16 flex items-center justify-center">
-          {answerState === 'selected' && (
-              <button onClick={handleConfirm} className="w-full py-4 rounded-full bg-teal-500 hover:bg-teal-600 text-white font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform">
-                  Submit Answer
-              </button>
-          )}
-          {answerState === 'verifying' && (
-              <div className="flex items-center text-teal-600 font-medium">
-                  <Loader2 className="w-5 h-5 animate-spin mr-3" />
-                  Verifying Answer...
-              </div>
-          )}
-          {answerState === 'revealed' && (
-              <div className="text-gray-500 font-medium animate-pulse">
-                  {currentIndex < quiz.questions.length - 1 ? "Next question coming..." : "Calculating final score..."}
-              </div>
-          )}
+        {answerState === 'selected' && (
+          <button onClick={handleConfirm} className="w-full py-4 rounded-full bg-teal-500 hover:bg-teal-600 text-white font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform">
+            Submit Answer
+          </button>
+        )}
+        {answerState === 'verifying' && (
+          <div className="flex items-center text-teal-600 font-medium">
+            <Loader2 className="w-5 h-5 animate-spin mr-3" />
+            Verifying Answer...
+          </div>
+        )}
+        {answerState === 'revealed' && (
+          <div className="text-gray-500 font-medium animate-pulse">
+            {currentIndex < quiz.questions.length - 1 ? "Next question coming..." : "Calculating final score..."}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: any) {
+function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: {
+  quiz: QuizWithQuestions;
+  userData: UserData;
+  scoreData: { score: number; total: number } | null;
+  onRetake: () => void;
+  onConfirm: () => void;
+}) {
   const today = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
   return (
@@ -283,39 +442,40 @@ function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: any
       <div className="p-10 md:w-2/5 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-100 bg-gray-50/50">
         <h2 className="text-3xl font-montserrat font-bold text-gray-900 mb-2">Quiz Complete!</h2>
         <p className="text-gray-600 mb-8">You've unlocked your certificate of completion.</p>
-        
+
         {scoreData && (
           <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-10 shadow-sm text-center">
             <div className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Your Score</div>
             <div className="text-5xl font-ibm-mono font-bold text-teal-500">
-               {scoreData.score} <span className="text-2xl text-gray-300">/ {scoreData.total}</span>
+              {scoreData.score} <span className="text-2xl text-gray-300">/ {scoreData.total}</span>
             </div>
           </div>
         )}
 
         <div className="space-y-4 mt-auto">
-          <button 
+          <button
             onClick={onConfirm}
             className="w-full py-4 px-6 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-600 transition-colors shadow-lg shadow-teal-500/20"
           >
-            Confirm & Generate
+            Generate My Certificate
           </button>
-          <button 
+          <button
             onClick={onRetake}
             className="w-full py-4 px-6 rounded-full border-2 border-gray-200 text-gray-600 font-semibold hover:border-gray-300 transition-colors"
           >
-           Retake Quiz
+            Retake Quiz
           </button>
         </div>
       </div>
-      
+
       <div className="p-10 md:w-3/5 bg-gray-100 flex items-center justify-center">
         <div className="w-full max-w-sm shadow-2xl rounded-xl overflow-hidden pointer-events-none">
-          <PledgePosterCanvas 
+          <PledgePosterCanvas
             userName={userData.fullName}
             pledgeName={quiz.title}
             date={today}
             bgImageUrl={quiz.bgImageUrl}
+            userPhotoUrl={userData.photoUrl}
             width={720}
             isQuiz={true}
           />
@@ -342,40 +502,42 @@ function QuizSuccess({ quiz, userData }: { quiz: QuizWithQuestions, userData: Us
       <div className="w-16 h-16 bg-teal-100 text-teal-500 rounded-full flex items-center justify-center mx-auto mb-6">
         <Check className="w-8 h-8" />
       </div>
-      <h2 className="text-3xl font-montserrat font-bold text-gray-900 mb-2">🎉 Certificate Ready!</h2>
-      <p className="text-gray-600 mb-8">Thank you, {userData.fullName}. Download your certificate and share your knowledge.</p>
-      
+      <h2 className="text-3xl font-montserrat font-bold text-gray-900 mb-2">🎉 Your Certificate is Ready!</h2>
+      <p className="text-gray-600 mb-8">Great job, {userData.fullName}! Your achievement is now officially recognized.</p>
+
       <div className="hidden">
-        <PledgePosterCanvas 
+        <PledgePosterCanvas
           ref={canvasRef}
           userName={userData.fullName}
           pledgeName={quiz.title}
           date={today}
           bgImageUrl={quiz.bgImageUrl}
+          userPhotoUrl={userData.photoUrl}
           width={1080}
           isQuiz={true}
         />
       </div>
 
       <div className="max-w-sm mx-auto mb-8 shadow-xl rounded-xl overflow-hidden pointer-events-none">
-         <PledgePosterCanvas 
+        <PledgePosterCanvas
           userName={userData.fullName}
           pledgeName={quiz.title}
           date={today}
           bgImageUrl={quiz.bgImageUrl}
+          userPhotoUrl={userData.photoUrl}
           width={720}
           isQuiz={true}
         />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto mb-10">
-        <button 
+        <button
           onClick={handleDownload}
-          className="flex-1 py-4 px-6 rounded-full bg-teal-500 text-white font-semibold hover:bg-teal-600 shadow-lg shadow-teal-500/20 transition-all flex justify-center"
+          className="flex-1 py-4 px-6 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-600 shadow-lg shadow-teal-500/20 transition-all flex justify-center items-center gap-2"
         >
-          ⬇️ Download PNG
+          <span>⬇️</span> Download Certificate (PNG)
         </button>
-        <button 
+        <button
           onClick={handleShare}
           className="flex-1 py-4 px-6 rounded-full bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors"
         >
@@ -388,6 +550,6 @@ function QuizSuccess({ quiz, userData }: { quiz: QuizWithQuestions, userData: Us
         <span className="hidden sm:inline text-gray-300">|</span>
         <Link href="/organizations" className="text-gray-500 hover:text-gray-800">Bring to Your Organization →</Link>
       </div>
-    </div>
+    </div >
   );
 }

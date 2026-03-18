@@ -6,6 +6,8 @@ const schema = z.object({
   quizId: z.string(),
   userName: z.string(),
   userEmail: z.string().email(),
+  whatsapp: z.string().optional(),
+  agreed: z.boolean().optional(),
   orgId: z.string().optional(),
   answers: z.record(z.string(), z.string())
 });
@@ -47,6 +49,8 @@ export async function POST(request: Request) {
         quizId: data.quizId,
         userName: data.userName,
         userEmail: data.userEmail,
+        whatsapp: data.whatsapp,
+        agreed: data.agreed || false,
         ...(data.orgId && { orgId: data.orgId }),
         score,
         totalQuestions: questions.length

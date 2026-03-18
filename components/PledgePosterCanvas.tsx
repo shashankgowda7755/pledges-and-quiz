@@ -54,26 +54,26 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       }
 
       // 3.5. User Photo
-      if (userPhotoUrl && !isQuiz) {
+      if (userPhotoUrl) {
         try {
           const photo = await loadImage(userPhotoUrl);
           ctx.save();
           const cx = width / 2;
-          const cy = h * 0.50; // Center middle
-          const r = width * 0.18; // radius
-          
+          const cy = isQuiz ? h * 0.42 : h * 0.50;
+          const r  = isQuiz ? width * 0.14 : width * 0.18;
+
           ctx.beginPath();
           ctx.arc(cx, cy, r, 0, Math.PI * 2);
           ctx.closePath();
           ctx.clip();
-          
+
           // Cover
           const s = Math.max((r * 2) / photo.width, (r * 2) / photo.height);
           const wImg = photo.width * s;
           const hImg = photo.height * s;
           ctx.drawImage(photo, cx - wImg / 2, cy - hImg / 2, wImg, hImg);
           ctx.restore();
-          
+
           // Border
           ctx.beginPath();
           ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -81,7 +81,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           ctx.strokeStyle = '#ffffff';
           ctx.stroke();
           ctx.lineWidth = 3 * scale;
-          ctx.strokeStyle = '#f97316'; // Orange accent
+          ctx.strokeStyle = isQuiz ? '#2dd4bf' : '#f97316';
           ctx.stroke();
         } catch (e) {
           console.error("Failed to load user photo", e);
@@ -90,7 +90,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
 
       // 4. User name (responsive font size)
       const maxLen = Math.max(1, userName.length);
-      const fs = ((maxLen > 20 ? 60 : maxLen > 13 ? 76 : 96) - (userPhotoUrl ? 20 : 0)) * scale;
+      const fs = ((maxLen > 20 ? 60 : maxLen > 13 ? 76 : 96) - (userPhotoUrl ? 16 : 0)) * scale;
       
       const fontMontserrat = getComputedStyle(document.documentElement).getPropertyValue('--font-montserrat') || 'Montserrat';
       const fontInter = getComputedStyle(document.documentElement).getPropertyValue('--font-inter') || 'Inter';

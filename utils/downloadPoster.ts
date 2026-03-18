@@ -4,7 +4,7 @@ export const downloadPoster = (canvas: HTMLCanvasElement, userName: string, pref
     const url  = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href     = url;
-    link.download = `${prefix}_${userName.replace(/\\s+/g, '_')}_PledgeMarks.png`;
+    link.download = `${prefix}_${userName.replace(/\s+/g, '_')}_PledgeMarks.png`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }, 'image/png');

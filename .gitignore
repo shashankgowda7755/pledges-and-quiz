@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# AI tool config (may contain API keys)
+models.json
+
+# SQLite dev database
+prisma/dev.db
+prisma/dev.db-journal
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

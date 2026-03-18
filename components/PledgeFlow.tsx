@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import type { Area } from 'react-easy-crop';
 import { Pledge, PledgeCommitment } from '@prisma/client';
 import { PledgePosterCanvas } from './PledgePosterCanvas';
 import { downloadPoster, sharePoster } from '@/utils/downloadPoster';
@@ -89,13 +90,14 @@ function PhotoCropModal({
 }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleSave = async () => {
+    if (!croppedAreaPixels) return;
     try {
       const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
       if (croppedImage) onCropSave(croppedImage);
@@ -147,7 +149,8 @@ function PhotoCropModal({
 // Step 1: User Details (Form + Photo)
 // -------------------------------------------------------------
 function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserData, onChange: (d: Partial<UserData>) => void, onNext: () => void, pledge: PledgeWithCommitments }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef  = useRef<HTMLInputElement>(null);
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,8 +160,7 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
       reader.onload = (event) => setRawImageSrc(event.target?.result as string);
       reader.readAsDataURL(file);
     }
-    // reset input
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    e.target.value = '';
   };
 
   const handleCropSave = (croppedImage: string) => {
@@ -186,26 +188,29 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
         
         {/* Photo Upload Area */}
         <div className="flex flex-col items-center mb-10">
-          <div 
-            onClick={() => fileInputRef.current?.click()}
+          <div
+            onClick={() => galleryRef.current?.click()}
             className="w-28 h-28 rounded-full bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors relative overflow-hidden group"
           >
             {userData.photoUrl ? (
-               <img src={userData.photoUrl} className="w-full h-full object-cover" alt="User" />
+              <img src={userData.photoUrl} className="w-full h-full object-cover" alt="User" />
             ) : (
               <Camera className="w-8 h-8 text-gray-300 group-hover:text-gray-400 transition-colors" />
             )}
-            
-            <div className="absolute right-0 bottom-0 w-8 h-8 bg-[#1e1b4b] rounded-full flex items-center justify-center border-2 border-white shadow-sm opacity-90 hover:opacity-100 transition-opacity">
+            <div className="absolute right-0 bottom-0 w-8 h-8 bg-[#1e1b4b] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
               <Edit2 className="w-4 h-4 text-white" />
             </div>
           </div>
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
-          
+
+          {/* Gallery input — no capture, opens photo library */}
+          <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+          {/* Camera input — capture="user" opens front camera directly */}
+          <input ref={cameraRef}  type="file" accept="image/*" capture="user" className="hidden" onChange={handleFileChange} />
+
           <div className="flex gap-4 mt-6 text-[10px] font-bold text-[#1e1b4b] uppercase tracking-widest">
-             <button onClick={() => fileInputRef.current?.click()} className="hover:text-[#f97316] transition-colors">UPLOAD PHOTO</button>
-             <div className="w-[1px] h-3 bg-gray-300"></div>
-             <button onClick={() => fileInputRef.current?.click()} className="hover:text-[#f97316] transition-colors">USE CAMERA</button>
+            <button type="button" onClick={() => galleryRef.current?.click()} className="hover:text-[#f97316] transition-colors">UPLOAD PHOTO</button>
+            <div className="w-[1px] h-3 bg-gray-300" />
+            <button type="button" onClick={() => cameraRef.current?.click()} className="hover:text-[#f97316] transition-colors">USE CAMERA</button>
           </div>
         </div>
 
@@ -271,16 +276,10 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
           className={`w-full py-4 rounded-xl font-bold text-[15px] transition-all
             ${isValid 
               ? 'bg-[#e2e8f0] text-gray-900 hover:bg-[#cbd5e1] shadow-sm' 
-              : 'bg-[#f1f5f9] text-gray-400 cursor-not-allowed hidden'}`}
+              : 'bg-[#f1f5f9] text-gray-400 cursor-not-allowed'}`}
         >
           Continue <span className="ml-1">›</span>
         </button>
-
-        {!isValid && (
-          <button disabled className="w-full py-4 rounded-xl font-bold text-[15px] bg-[#f1f5f9] text-gray-400 cursor-not-allowed">
-             Continue <span className="ml-1">›</span>
-          </button>
-        )}
 
       </div>
     </>
@@ -342,6 +341,7 @@ function PledgePreview({ userData, pledge, onBack, onConfirm }: { userData: User
 function PledgeCommitments({ pledge, userData, onBack, onSuccess }: { pledge: PledgeWithCommitments, userData: UserData, onBack: () => void, onSuccess: () => void }) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const allChecked  = pledge.commitments.length > 0 && pledge.commitments.every(c => checked[c.id]);
 
@@ -354,23 +354,30 @@ function PledgeCommitments({ pledge, userData, onBack, onSuccess }: { pledge: Pl
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setError(null);
     try {
-      // Fake submission or real submission
       const res = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           pledgeId: pledge.id,
           userName: userData.fullName,
-          userEmail: userData.email
-          // not recording image or whatsapp in db for now as per lightweight prompt
+          userEmail: userData.email,
+          whatsapp: userData.whatsapp,
+          agreed: userData.agreed,
         }),
       });
-      // Ignoring errors for demo to ensure it completes
+
+      if (!res.ok) {
+        throw new Error('Failed to submit your pledge. Please try again.');
+      }
+
       onSuccess();
     } catch (e) {
       console.error(e);
-      onSuccess();
+      setError(e instanceof Error ? e.message : 'Something went wrong. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -407,6 +414,11 @@ function PledgeCommitments({ pledge, userData, onBack, onSuccess }: { pledge: Pl
 
       {/* Floating Action Bar */}
       <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-white via-white to-transparent pt-16 mt-auto">
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl text-center font-medium animate-shake">
+            {error}
+          </div>
+        )}
         <button 
           onClick={handleSubmit}
           disabled={!allChecked || isSubmitting}

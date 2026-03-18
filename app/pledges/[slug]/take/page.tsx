@@ -29,7 +29,7 @@ export default async function TakePledgePage(context: { params: Promise<{ slug: 
     <div className="min-h-screen flex flex-col bg-[#F2F0E9] relative">
       <Header />
       <div className="flex-1">
-        <PledgeFlow pledge={pledge as any} />
+        <PledgeFlow pledge={pledge!} />
       </div>
     </div>
   );

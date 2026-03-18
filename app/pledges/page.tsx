@@ -3,27 +3,46 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import prisma from '@/lib/prisma';
 
-export default async function PledgesPage() {
+const CATEGORIES = ['Environment', 'Health', 'Social', 'Lifestyle'];
+
+export default async function PledgesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const { category } = await searchParams;
+  const activeCategory = CATEGORIES.find(c => c.toLowerCase() === category?.toLowerCase());
+
   const pledges = await prisma.pledge.findMany({
-    where: { isActive: true },
-    orderBy: [
-      { eventDate: 'asc' },
-      { createdAt: 'desc' }
-    ]
+    where: {
+      isActive: true,
+      ...(activeCategory ? { category: activeCategory.toLowerCase() } : {}),
+    },
+    orderBy: [{ eventDate: 'asc' }, { createdAt: 'desc' }],
   });
-  
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-1 max-w-7xl mx-auto px-4 py-16 w-full">
         <h1 className="text-4xl md:text-5xl font-montserrat font-bold text-gray-900 mb-8">Active Pledges</h1>
-        
+
         <div className="flex gap-3 mb-12 overflow-x-auto pb-2 scrollbar-hide">
-          <span className="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap cursor-pointer">All</span>
-          <span className="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 cursor-pointer transition-colors">Environment</span>
-          <span className="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 cursor-pointer transition-colors">Health</span>
-          <span className="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 cursor-pointer transition-colors">Social</span>
-          <span className="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 cursor-pointer transition-colors">Lifestyle</span>
+          <Link
+            href="/pledges"
+            className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${!activeCategory ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+          >
+            All
+          </Link>
+          {CATEGORIES.map(cat => (
+            <Link
+              key={cat}
+              href={`/pledges?category=${cat.toLowerCase()}`}
+              className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            >
+              {cat}
+            </Link>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -49,15 +68,10 @@ export default async function PledgesPage() {
               </div>
             </div>
           ))}
+          {pledges.length === 0 && (
+            <p className="text-gray-500 col-span-3 py-12 text-center">No pledges found in this category.</p>
+          )}
         </div>
-        
-        {pledges.length > 12 && (
-          <div className="mt-12 text-center">
-            <button className="border-2 border-gray-200 text-gray-600 font-semibold rounded-full px-8 py-3 hover:border-gray-300 hover:text-gray-900 transition-colors">
-              Load More
-            </button>
-          </div>
-        )}
       </main>
       <Footer />
     </div>
