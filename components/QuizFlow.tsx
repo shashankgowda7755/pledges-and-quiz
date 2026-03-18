@@ -516,6 +516,7 @@ function QuizSuccess({ quiz, userData }: { quiz: QuizWithQuestions, userData: Us
           userPhotoUrl={userData.photoUrl}
           width={1080}
           isQuiz={true}
+          layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
         />
       </div>
 
@@ -528,6 +529,7 @@ function QuizSuccess({ quiz, userData }: { quiz: QuizWithQuestions, userData: Us
           userPhotoUrl={userData.photoUrl}
           width={720}
           isQuiz={true}
+          layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
         />
       </div>
 

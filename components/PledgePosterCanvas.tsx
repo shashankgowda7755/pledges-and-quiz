@@ -40,15 +40,31 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       }
 
       // 2. Photo — rectangle slot matched to the white placeholder on the poster
-      const rx = 0.535 * width;
-      const ry = 0.195 * h;
-      const rw = 0.375 * width;
-      const rh = 0.365 * h;
+      // Base dimensions from the design (2500x3536 approx based on the coordinates provided)
+      const baseW = 2500;
+      const baseH = 3536;
+      
+      // Coordinates provided by user:
+      // Width: 998 px, Height: 1014.1 px
+      // X: 1321.2 px, Y: 720.3 px
+      // Rotate: -10.2 degrees
+      
+      const rx = (1321.2 / baseW) * width;
+      const ry = (720.3 / baseH) * h;
+      const rw = (998 / baseW) * width;
+      const rh = (1014.1 / baseH) * h;
+      const angle = -10.2 * (Math.PI / 180);
 
       if (userPhotoUrl) {
         try {
           const photo = await loadImage(userPhotoUrl);
           ctx.save();
+          
+          // Move to center of the photo area to apply rotation
+          ctx.translate(rx + rw/2, ry + rh/2);
+          ctx.rotate(angle);
+          ctx.translate(-(rx + rw/2), -(ry + rh/2));
+          
           ctx.beginPath();
           ctx.rect(rx, ry, rw, rh);
           ctx.clip();
@@ -66,16 +82,26 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         const fontMontserrat = getComputedStyle(document.documentElement)
           .getPropertyValue('--font-montserrat') || 'Montserrat';
 
-        const maxLen = Math.max(1, userName.length);
-        const fs     = (maxLen > 18 ? 32 : maxLen > 12 ? 40 : 48) * scale;
-        const nameY  = ry + rh + 46 * scale;
+        // Base coordinate for name from new provided box:
+        // X: 992.4, Y: 1950.4, Width: 1345.9, Height: 185.1
+        const nameXBase = 992.4 + (1345.9 / 2);
+        const nameYBase = 1950.4 + (185.1 / 2);
+        
+        const nameX = (nameXBase / baseW) * width;
+        const nameY = (nameYBase / baseH) * h;
 
+        const maxLen = Math.max(1, userName.length);
+        const fs     = (maxLen > 18 ? 50 : maxLen > 12 ? 65 : 80) * scale;
+        const nameMaxW = (1345.9 / baseW) * width;
+        
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur  = 0;
         ctx.textAlign   = 'center';
+        ctx.textBaseline = 'middle';
         ctx.font        = `700 ${fs}px ${fontMontserrat}, sans-serif`;
         ctx.fillStyle   = '#1a2744';
-        ctx.fillText(userName, rx + rw / 2, nameY, rw * 1.1);
+        
+        ctx.fillText(userName, nameX, nameY, nameMaxW);
       }
 
       // 4. Subtle watermark

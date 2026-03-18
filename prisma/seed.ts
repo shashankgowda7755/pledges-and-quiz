@@ -203,25 +203,59 @@ async function main() {
             });
           }
         }
-      } else {
-        for (let i = 1; i <= 4; i++) {
-          const question = await prisma.question.create({
-            data: {
-              quizId: quiz.id,
-              text: `Sample question ${i} about ${quiz.title}?`,
-              order: i
-            }
-          })
+      } else if (quiz.slug === 'sustainable-101') {
+        const count = await prisma.question.count({ where: { quizId: quiz.id } });
+        if (count > 0) {
+            await prisma.question.deleteMany({ where: { quizId: quiz.id } });
+        }
+        
+        const question = await prisma.question.create({
+          data: {
+            quizId: quiz.id,
+            text: `Which of the following aligns best with rapid sustainable living improvements?`,
+            order: 1
+          }
+        });
 
-          for (let j = 1; j <= 4; j++) {
-            await prisma.answerOption.create({
+        const options = [
+          { text: "Reducing single-use plastics and waste", isCorrect: true },
+          { text: "Leaving electronics plugged in 24/7", isCorrect: false },
+          { text: "Using more disposable utensils daily", isCorrect: false },
+          { text: "Driving short distances instead of walking", isCorrect: false }
+        ];
+
+        for (let j = 0; j < options.length; j++) {
+          await prisma.answerOption.create({
+            data: {
+              questionId: question.id,
+              text: options[j].text,
+              isCorrect: options[j].isCorrect,
+              order: j + 1
+            }
+          });
+        }
+      } else {
+        const count = await prisma.question.count({ where: { quizId: quiz.id } });
+        if (count === 0) {
+          for (let i = 1; i <= 4; i++) {
+            const question = await prisma.question.create({
               data: {
-                questionId: question.id,
-                text: `Option ${j} for Question ${i}`,
-                isCorrect: j === 1,
-                order: j
+                quizId: quiz.id,
+                text: `Sample question ${i} about ${quiz.title}?`,
+                order: i
               }
             })
+
+            for (let j = 1; j <= 4; j++) {
+              await prisma.answerOption.create({
+                data: {
+                  questionId: question.id,
+                  text: `Option ${j} for Question ${i}`,
+                  isCorrect: j === 1,
+                  order: j
+                }
+              })
+            }
           }
         }
       }
