@@ -478,7 +478,7 @@ function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: {
             userPhotoUrl={userData.photoUrl}
             width={720}
             isQuiz={true}
-            layout={quiz.slug === 'house-sparrow' ? 'sparrow' : 'default'}
+            layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
           />
         </div>
       </div>
