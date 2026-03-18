@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
-  ({ userName, bgImageUrl, userPhotoUrl, width = 1080 }, ref) => {
+  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, layout = 'default' }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
@@ -28,7 +28,9 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       const h     = Math.round(1350 * scale);
       canvas.width  = width;
       canvas.height = h;
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext('2d', { alpha: false })!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
       // 1. Background poster (full bleed)
       try {
@@ -49,11 +51,25 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       // X: 1321.2 px, Y: 720.3 px
       // Rotate: -10.2 degrees
       
-      const rx = (1321.2 / baseW) * width;
-      const ry = (720.3 / baseH) * h;
-      const rw = (998 / baseW) * width;
-      const rh = (1014.1 / baseH) * h;
+      let rx = (1321.2 / baseW) * width;
+      let ry = (720.3 / baseH) * h;
+      let rw = (998 / baseW) * width;
+      let rh = (1014.1 / baseH) * h;
       const angle = -10.2 * (Math.PI / 180);
+
+      if (layout === 'earbuds') {
+         // Pulling left edge 190px right, and top edge 100px down
+         rx = ((1321.2 + 190) / baseW) * width;
+         ry = ((720.3 + 100) / baseH) * h;
+         
+         // Reducing width by 190 to lock the right edge where it was
+         rw = ((998 - 190) / baseW) * width;
+         
+         // Releasing bottom: keeping it extended only 60px past the original 1014.1 size
+         // Old ry (720.3) + old rh (1014.1) + 60 = 1794.4 (bottom edge)
+         // New rh = 1794.4 - new ry (820.3) = 974.1
+         rh = (974.1 / baseH) * h;
+      }
 
       if (userPhotoUrl) {
         try {
@@ -113,7 +129,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       ctx.shadowBlur = 0;
       ctx.fillText('pledgemarks.com', width - 20 * scale, h - 16 * scale);
 
-    }, [userName, bgImageUrl, userPhotoUrl, width]);
+    }, [userName, bgImageUrl, userPhotoUrl, width, layout]);
 
     useEffect(() => { draw(); }, [draw]);
 
