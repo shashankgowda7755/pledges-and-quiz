@@ -203,9 +203,9 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
           </div>
 
           {/* Gallery input — no capture, opens photo library */}
-          <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-          {/* Camera input — capture="user" opens front camera directly */}
-          <input ref={cameraRef}  type="file" accept="image/*" capture="user" className="hidden" onChange={handleFileChange} />
+          <input ref={galleryRef} type="file" accept="image/*" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }} onChange={handleFileChange} />
+          {/* Camera input — capture="user" must NOT be display:none on iOS or capture won't trigger */}
+          <input ref={cameraRef}  type="file" accept="image/*" capture="user" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }} onChange={handleFileChange} />
 
           <div className="flex gap-4 mt-6 text-[10px] font-bold text-[#1e1b4b] uppercase tracking-widest">
             <button type="button" onClick={() => galleryRef.current?.click()} className="hover:text-[#f97316] transition-colors">UPLOAD PHOTO</button>

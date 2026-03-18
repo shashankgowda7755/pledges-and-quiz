@@ -202,9 +202,10 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
             </div>
           </div>
 
-          {/* Hidden inputs */}
-          <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-          <input ref={cameraRef}  type="file" accept="image/*" capture="user" className="hidden" onChange={handleFile} />
+          {/* Gallery input — no capture, opens photo library */}
+          <input ref={galleryRef} type="file" accept="image/*" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }} onChange={handleFile} />
+          {/* Camera input — must NOT be display:none on iOS or capture won't trigger */}
+          <input ref={cameraRef}  type="file" accept="image/*" capture="user" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }} onChange={handleFile} />
 
           <div className="flex gap-4 mt-4 text-[10px] font-bold text-teal-600 uppercase tracking-widest">
             <button type="button" onClick={() => galleryRef.current?.click()} className="hover:text-teal-700 transition-colors">
