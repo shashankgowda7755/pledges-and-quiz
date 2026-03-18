@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import type { Area } from 'react-easy-crop';
 import { Pledge, PledgeCommitment } from '@prisma/client';
 import { PledgePosterCanvas } from './PledgePosterCanvas';
 import { downloadPoster, sharePoster } from '@/utils/downloadPoster';
-import { Check, Loader2, Camera, ArrowLeft, Edit2, X } from 'lucide-react';
+import { Check, Loader2, Camera, ArrowLeft, Edit2, X, RefreshCw } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
 
@@ -146,12 +146,77 @@ function PhotoCropModal({
 }
 
 // -------------------------------------------------------------
+// Camera Modal — uses getUserMedia for reliable cross-browser camera
+// -------------------------------------------------------------
+function CameraModal({ onCapture, onClose }: { onCapture: (src: string) => void; onClose: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [stream, setStream]       = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [error, setError]         = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    async function start() {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        });
+        if (!active) { s.getTracks().forEach(t => t.stop()); return; }
+        setStream(s);
+        if (videoRef.current) videoRef.current.srcObject = s;
+      } catch {
+        setError('Camera access denied. Please allow camera permissions in your browser settings.');
+      }
+    }
+    start();
+    return () => { active = false; stream?.getTracks().forEach(t => t.stop()); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facingMode]);
+
+  const stopAndClose = () => { stream?.getTracks().forEach(t => t.stop()); onClose(); };
+
+  const capture = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    const canvas = document.createElement('canvas');
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')!.drawImage(video, 0, 0);
+    stream?.getTracks().forEach(t => t.stop());
+    onCapture(canvas.toDataURL('image/png'));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+      {error ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-white text-center p-8 gap-6">
+          <Camera className="w-12 h-12 text-gray-500" />
+          <p className="text-lg font-medium">{error}</p>
+          <button onClick={stopAndClose} className="px-6 py-3 bg-white text-black rounded-xl font-bold">Close</button>
+        </div>
+      ) : (
+        <>
+          <video ref={videoRef} autoPlay playsInline muted className="flex-1 w-full object-cover" />
+          <div className="p-6 flex justify-between items-center bg-black/80">
+            <button onClick={stopAndClose} className="text-white font-bold text-sm px-4 py-2">Cancel</button>
+            <button onClick={capture} className="w-20 h-20 rounded-full bg-white border-4 border-gray-400 shadow-lg active:scale-95 transition-transform" />
+            <button onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')} className="text-white p-2">
+              <RefreshCw className="w-6 h-6" />
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// -------------------------------------------------------------
 // Step 1: User Details (Form + Photo)
 // -------------------------------------------------------------
 function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserData, onChange: (d: Partial<UserData>) => void, onNext: () => void, pledge: PledgeWithCommitments }) {
-  const galleryRef = useRef<HTMLInputElement>(null);
-  const cameraRef  = useRef<HTMLInputElement>(null);
+  const galleryRef                  = useRef<HTMLInputElement>(null);
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const [showCamera, setShowCamera]   = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -172,11 +237,17 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
 
   return (
     <>
+      {showCamera && (
+        <CameraModal
+          onCapture={(src) => { setShowCamera(false); setRawImageSrc(src); }}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
       {rawImageSrc && (
-        <PhotoCropModal 
-          imageSrc={rawImageSrc} 
-          onClose={() => setRawImageSrc(null)} 
-          onCropSave={handleCropSave} 
+        <PhotoCropModal
+          imageSrc={rawImageSrc}
+          onClose={() => setRawImageSrc(null)}
+          onCropSave={handleCropSave}
         />
       )}
 
@@ -202,15 +273,13 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
             </div>
           </div>
 
-          {/* Gallery input — no capture, opens photo library */}
+          {/* Gallery input */}
           <input ref={galleryRef} type="file" accept="image/*" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }} onChange={handleFileChange} />
-          {/* Camera input — capture="user" must NOT be display:none on iOS or capture won't trigger */}
-          <input ref={cameraRef}  type="file" accept="image/*" capture="user" style={{ position: 'absolute', width: 0, height: 0, opacity: 0, overflow: 'hidden' }} onChange={handleFileChange} />
 
           <div className="flex gap-4 mt-6 text-[10px] font-bold text-[#1e1b4b] uppercase tracking-widest">
             <button type="button" onClick={() => galleryRef.current?.click()} className="hover:text-[#f97316] transition-colors">UPLOAD PHOTO</button>
             <div className="w-[1px] h-3 bg-gray-300" />
-            <button type="button" onClick={() => cameraRef.current?.click()} className="hover:text-[#f97316] transition-colors">USE CAMERA</button>
+            <button type="button" onClick={() => setShowCamera(true)} className="hover:text-[#f97316] transition-colors">USE CAMERA</button>
           </div>
         </div>
 
