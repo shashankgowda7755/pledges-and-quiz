@@ -4,10 +4,17 @@ import prisma from '@/lib/prisma';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pledgemarks.com';
 
-  const [pledges, quizzes] = await Promise.all([
-    prisma.pledge.findMany({ where: { isActive: true }, select: { slug: true, createdAt: true } }),
-    prisma.quiz.findMany({ where: { isActive: true }, select: { slug: true, createdAt: true } }),
-  ]);
+  let pledges: { slug: string; createdAt: Date }[] = [];
+  let quizzes: { slug: string; createdAt: Date }[] = [];
+
+  try {
+    [pledges, quizzes] = await Promise.all([
+      prisma.pledge.findMany({ where: { isActive: true }, select: { slug: true, createdAt: true } }),
+      prisma.quiz.findMany({ where: { isActive: true }, select: { slug: true, createdAt: true } }),
+    ]);
+  } catch {
+    // DB not available at build time — dynamic routes will be omitted from sitemap
+  }
 
   return [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'monthly', priority: 1 },

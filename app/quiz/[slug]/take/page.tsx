@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { QuizFlow } from '@/components/QuizFlow';
