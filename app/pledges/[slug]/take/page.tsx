@@ -10,7 +10,7 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   if (!pledge) return {};
   
   return {
-    title: `Take Pledge: ${pledge.name} | PledgeMarks`,
+    title: `Take Pledge: ${pledge.name} | Communitree`,
   };
 }
 

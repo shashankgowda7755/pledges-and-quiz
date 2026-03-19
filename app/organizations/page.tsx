@@ -35,7 +35,7 @@ export default function OrganizationsPage() {
         <section className="bg-gray-900 py-24 px-4 text-center">
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-montserrat font-extrabold text-white mb-6">Turn Values into Visuals.</h1>
-            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">Bring PledgeMarks to your School, NGO, or Company.</p>
+            <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">Bring COMMUNITREE to your School, NGO, or Company.</p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
                <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm w-full">
                    <div className="text-red-400 font-bold mb-2">The Old Way</div>
@@ -43,7 +43,7 @@ export default function OrganizationsPage() {
                </div>
                <div className="text-gray-500 font-bold hidden sm:block">VS</div>
                <div className="bg-teal-900/30 p-6 rounded-xl border border-teal-500/30 max-w-sm w-full">
-                   <div className="text-teal-400 font-bold mb-2">The PledgeMarks Way</div>
+                   <div className="text-teal-400 font-bold mb-2">The COMMUNITREE Way</div>
                    <div className="text-gray-300 text-sm">Instant branded poster. Social sharing. Trackable impact.</div>
                </div>
             </div>

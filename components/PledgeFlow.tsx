@@ -262,7 +262,7 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
     setRawImageSrc(null);
   };
 
-  const isValid = userData.fullName.length > 2 && userData.email.includes('@') && userData.email.includes('.') && userData.whatsapp.length > 5;
+  const isValid = userData.photoUrl !== null && userData.fullName.length > 2 && userData.email.includes('@') && userData.email.includes('.') && userData.whatsapp.length > 5;
 
   return (
     <>
@@ -310,6 +310,7 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
             <div className="w-[1px] h-3 bg-gray-300" />
             <button type="button" onClick={() => setShowCamera(true)} className="hover:text-[#f97316] transition-colors">USE CAMERA</button>
           </div>
+          <p className="text-[10px] text-red-400 mt-1">Required — appears on your certificate</p>
         </div>
 
         <div className="space-y-6 text-left mb-10">
@@ -368,12 +369,15 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
           </label>
         </div>
 
-        <button 
+        {!userData.photoUrl && (
+          <p className="text-xs text-red-400 text-center -mb-2">Please add your photo to continue</p>
+        )}
+        <button
           onClick={onNext}
           disabled={!isValid}
           className={`w-full py-4 rounded-xl font-bold text-[15px] transition-all
-            ${isValid 
-              ? 'bg-[#e2e8f0] text-gray-900 hover:bg-[#cbd5e1] shadow-sm' 
+            ${isValid
+              ? 'bg-[#e2e8f0] text-gray-900 hover:bg-[#cbd5e1] shadow-sm'
               : 'bg-[#f1f5f9] text-gray-400 cursor-not-allowed'}`}
         >
           Continue <span className="ml-1">›</span>

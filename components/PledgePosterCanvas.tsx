@@ -25,7 +25,8 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       if (!canvas) return;
 
       const scale = width / 1080;
-      const h     = Math.round(1350 * scale);
+      // A4 ratio matching the sparrow poster (2480 × 3508)
+      const h     = Math.round((3508 / 2480) * width);
       canvas.width  = width;
       canvas.height = h;
       const ctx = canvas.getContext('2d');
@@ -37,27 +38,23 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       try {
         const bg = await loadImage(bgImageUrl);
         ctx.drawImage(bg, 0, 0, width, h);
-      } catch {
+      } catch (err) {
+        console.error('[PosterCanvas] Failed to load background:', bgImageUrl, err);
         ctx.fillStyle = '#f3f4f6';
         ctx.fillRect(0, 0, width, h);
       }
 
-      // 2. Photo — rectangle slot matched to the white placeholder on the poster
-      // Base dimensions from the design (2500x3536 approx based on the coordinates provided)
-      const baseW = 2500;
-      const baseH = 3536;
-      
-      // Coordinates provided by user:
-      // Width: 998 px, Height: 1014.1 px
-      // X: 1321.2 px, Y: 720.3 px
-      // Rotate: -10.2 degrees
-      
-      // Apply coordinates universally to both layouts (user requested earbuds size for sparrow)
-      const rx = ((1321.2 + 190) / baseW) * width;
-      const ry = ((720.3 + 100) / baseH) * h;
-      const rw = ((998 - 190) / baseW) * width;
-      const rh = (974.1 / baseH) * h;
-      const angle = -10.2 * (Math.PI / 180);
+      // 2. Photo — white square placeholder in the upper-right of the sparrow poster
+      // Source image: 2480 × 3508 (A4 @ 300 DPI)
+      // White card slot: x=1165, y=455, w=1060, h=1445, rotation ≈ -3°
+      const baseW = 2480;
+      const baseH = 3508;
+
+      const rx = (1165 / baseW) * width;
+      const ry = (455  / baseH) * h;
+      const rw = (1060 / baseW) * width;
+      const rh = (1445 / baseH) * h;
+      const angle = -3 * (Math.PI / 180);
 
       if (userPhotoUrl) {
         try {
@@ -81,30 +78,29 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         } catch { /* skip */ }
       }
 
-      // 3. Name — below the photo, centred on the slot
+      // 3. Name — just below the white photo card, right-aligned to card's right edge
       if (userName) {
         const fontMontserrat = getComputedStyle(document.documentElement)
           .getPropertyValue('--font-montserrat') || 'Montserrat';
 
-        // Right-aligned to the right edge of the provided box
-        // X: 992.4, Y: 1950.4, Width: 1345.9, Height: 185.1
-        const nameXBase = 992.4 + 1345.9; // Right edge
-        const nameYBase = 1950.4 + (185.1 / 2);
-        
+        // Right edge of card: x=1165+1060=2225, y just below card: 455+1445+40=1940
+        const nameXBase  = 2225;
+        const nameYBase  = 1940;
+        const nameMaxW   = (1060 / baseW) * width;
+
         const nameX = (nameXBase / baseW) * width;
         const nameY = (nameYBase / baseH) * h;
 
         const maxLen = Math.max(1, userName.length);
-        const fs     = (maxLen > 18 ? 50 : maxLen > 12 ? 65 : 80) * scale;
-        const nameMaxW = (1345.9 / baseW) * width;
-        
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur  = 0;
-        ctx.textAlign   = 'right';
+        const fs     = (maxLen > 18 ? 46 : maxLen > 12 ? 58 : 72) * scale;
+
+        ctx.shadowColor  = 'transparent';
+        ctx.shadowBlur   = 0;
+        ctx.textAlign    = 'right';
         ctx.textBaseline = 'middle';
-        ctx.font        = `700 ${fs}px ${fontMontserrat}, sans-serif`;
-        ctx.fillStyle   = '#1a2744';
-        
+        ctx.font         = `700 ${fs}px ${fontMontserrat}, sans-serif`;
+        ctx.fillStyle    = '#1a2744';
+
         ctx.fillText(userName, nameX, nameY, nameMaxW);
       }
 
@@ -115,7 +111,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       ctx.fillStyle = 'rgba(0,0,0,0.25)';
       ctx.textAlign = 'right';
       ctx.shadowBlur = 0;
-      ctx.fillText('pledgemarks.com', width - 20 * scale, h - 16 * scale);
+      ctx.fillText('communitree.in', width - 20 * scale, h - 16 * scale);
 
     }, [userName, bgImageUrl, userPhotoUrl, width]);
 
@@ -129,10 +125,8 @@ PledgePosterCanvas.displayName = 'PledgePosterCanvas';
 const loadImage = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const img = new Image();
-    // Do NOT set crossOrigin — all images are same-origin or base64.
-    // Setting crossOrigin='anonymous' on same-origin images taints the canvas
-    // if the CDN doesn't return Access-Control-Allow-Origin, crashing toBlob().
     img.onload  = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
+    img.onerror = (e) => reject(e);
+    // Make relative URLs absolute so the canvas context can always resolve them
+    img.src = src.startsWith('/') ? `${window.location.origin}${src}` : src;
   });

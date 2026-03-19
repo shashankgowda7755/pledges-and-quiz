@@ -29,7 +29,7 @@ export default async function QuizPage({
       <main className="flex-1 max-w-7xl mx-auto px-4 py-16 w-full">
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-montserrat font-bold text-gray-900 mb-4">
-            Test Your Knowledge.<br />Earn Your Certificate.
+            Take the Quiz.<br />Earn Your Certificate.
           </h1>
           <p className="text-xl text-gray-600 lg:w-2/3">Complete a quiz. Download your certificate instantly.</p>
         </div>

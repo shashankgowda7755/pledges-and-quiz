@@ -12,7 +12,7 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   if (!pledge) return {};
   
   return {
-    title: `${pledge.name} | PledgeMarks`,
+    title: `${pledge.name} | Communitree`,
     description: pledge.description.slice(0, 155),
     openGraph: { images: [pledge.bgImageUrl] }
   };

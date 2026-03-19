@@ -256,7 +256,7 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
     e.target.value = '';
   };
 
-  const isValid = formData.fullName.length > 2 && formData.email.includes('@') && formData.email.includes('.') && formData.whatsapp.length > 5;
+  const isValid = formData.photoUrl !== null && formData.fullName.length > 2 && formData.email.includes('@') && formData.email.includes('.') && formData.whatsapp.length > 5;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,7 +314,7 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
               Camera
             </button>
           </div>
-          <p className="text-[10px] text-gray-400 mt-1">Optional — appears on your certificate</p>
+          <p className="text-[10px] text-red-400 mt-1">Required — appears on your certificate</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 text-left">
@@ -370,6 +370,9 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
             </span>
           </label>
 
+          {!formData.photoUrl && (
+            <p className="text-xs text-red-400 text-center -mb-2">Please add your photo to continue</p>
+          )}
           <button
             type="submit"
             disabled={!isValid}
