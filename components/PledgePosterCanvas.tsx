@@ -128,7 +128,9 @@ PledgePosterCanvas.displayName = 'PledgePosterCanvas';
 const loadImage = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    // Do NOT set crossOrigin — all images are same-origin or base64.
+    // Setting crossOrigin='anonymous' on same-origin images taints the canvas
+    // if the CDN doesn't return Access-Control-Allow-Origin, crashing toBlob().
     img.onload  = () => resolve(img);
     img.onerror = reject;
     img.src = src;
