@@ -532,79 +532,197 @@ function PledgeCommitments({ pledge, userData, onBack, onSuccess }: { pledge: Pl
 }
 
 // -------------------------------------------------------------
-// Step 4: Success
+// Edit Certificate Modal (shared by PledgeSuccess)
 // -------------------------------------------------------------
-function PledgeSuccess({ pledge, userData, onReturnHome }: { pledge: PledgeWithCommitments, userData: UserData, onReturnHome: () => void }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const today = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+function EditCertModal({ current, onSave, onClose }: {
+  current: { fullName: string; photoUrl: string | null };
+  onSave: (updated: { fullName: string; photoUrl: string | null }) => void;
+  onClose: () => void;
+}) {
+  const [name, setName]             = useState(current.fullName);
+  const [photoUrl, setPhotoUrl]     = useState<string | null>(current.photoUrl);
+  const [rawImageSrc, setRawImg]    = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const galleryRef                  = useRef<HTMLInputElement>(null);
 
-  const handleDownload = () => {
-    if (canvasRef.current) downloadPoster(canvasRef.current, userData.fullName);
-  };
-
-  const handleShare = () => {
-    if (canvasRef.current) sharePoster(canvasRef.current, userData.fullName, window.location.href);
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setRawImg(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   return (
-    <div className="text-center pt-8">
-      <div className="w-16 h-16 bg-[#dcfce7] text-[#22c55e] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-        <Check className="w-8 h-8" strokeWidth={3} />
-      </div>
-      <h2 className="text-3xl font-extrabold text-[#111827] mb-2 tracking-tight">Pledge Taken! <span className="ml-1">🎉</span></h2>
-      <p className="text-gray-500 mb-10">Thank you, <span className="font-bold text-gray-900">{userData.fullName}</span>.<br/>You have successfully pledged to honor the impact.</p>
-      
-      {/* Hidden HD Canvas for Download */}
-      <div className="hidden">
-        <PledgePosterCanvas 
-          ref={canvasRef}
-          userName={userData.fullName}
-          pledgeName={pledge.name}
-          date={today}
-          bgImageUrl={pledge.bgImageUrl}
-          userPhotoUrl={userData.photoUrl}
-          width={1080}
-          layout={['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default'}
+    <>
+      {showCamera && (
+        <CameraModal
+          onCapture={(src) => { setShowCamera(false); setRawImg(src); }}
+          onClose={() => setShowCamera(false)}
         />
-      </div>
-
-      <div className="max-w-[400px] mx-auto mb-10 shadow-2xl shadow-black/10 rounded-[1.5rem] overflow-hidden pointer-events-none bg-white">
-         <PledgePosterCanvas 
-          userName={userData.fullName}
-          pledgeName={pledge.name}
-          date={today}
-          bgImageUrl={pledge.bgImageUrl}
-          userPhotoUrl={userData.photoUrl}
-          width={800} // Same nice preview size
-          layout={['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default'}
+      )}
+      {rawImageSrc && (
+        <PhotoCropModal
+          imageSrc={rawImageSrc}
+          onClose={() => setRawImg(null)}
+          onCropSave={(cropped) => { setPhotoUrl(cropped); setRawImg(null); }}
         />
+      )}
+      <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/60 p-4">
+        <div className="bg-white rounded-[1.5rem] w-full max-w-sm overflow-hidden">
+          <div className="flex justify-between items-center px-6 pt-6 pb-4 border-b border-gray-100">
+            <h3 className="font-bold text-gray-900 text-lg">Edit Details</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-6 space-y-5">
+            <div className="flex flex-col items-center gap-3">
+              <div
+                onClick={() => galleryRef.current?.click()}
+                className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden relative group"
+              >
+                {photoUrl
+                  ? <img src={photoUrl} className="w-full h-full object-cover" alt="photo" />
+                  : <Camera className="w-7 h-7 text-gray-400" />
+                }
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Edit2 className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <input ref={galleryRef} type="file" accept="image/*" style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }} onChange={handleFile} />
+              <div className="flex gap-4 text-[11px] font-bold text-[#1e1b4b] uppercase tracking-widest">
+                <button type="button" onClick={() => galleryRef.current?.click()} className="hover:text-[#f97316] transition-colors">Gallery</button>
+                <span className="text-gray-300">|</span>
+                <button type="button" onClick={() => setShowCamera(true)} className="hover:text-[#f97316] transition-colors">Camera</button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Name on Certificate</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#1e1b4b] focus:ring-4 focus:ring-indigo-50 outline-none font-medium text-gray-900"
+                placeholder="Your name"
+              />
+            </div>
+          </div>
+          <div className="px-6 pb-6 flex gap-3">
+            <button onClick={onClose} className="flex-1 py-3 rounded-xl border-2 border-gray-100 text-gray-600 font-bold hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={() => { onSave({ fullName: name, photoUrl }); onClose(); }}
+              disabled={name.trim().length < 2}
+              className="flex-1 py-3 rounded-xl bg-[#1e1b4b] text-white font-bold hover:bg-[#312e81] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Update
+            </button>
+          </div>
+        </div>
       </div>
+    </>
+  );
+}
 
-      <div className="flex gap-4 max-w-[400px] mx-auto mb-6">
-        <button 
-          onClick={handleDownload}
-          className="flex-1 py-4.5 rounded-xl bg-[#292524] text-white font-bold hover:bg-black transition-colors shadow-md flex items-center justify-center text-[15px]"
+// -------------------------------------------------------------
+// Step 4: Success
+// -------------------------------------------------------------
+function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pledge: PledgeWithCommitments, userData: UserData, onReturnHome: () => void }) {
+  const canvasRef               = useRef<HTMLCanvasElement>(null);
+  const today                   = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+  const [cert, setCert]         = useState(initialUserData);
+  const [showEdit, setShowEdit] = useState(false);
+
+  const handleDownload = () => {
+    if (canvasRef.current) downloadPoster(canvasRef.current, cert.fullName);
+  };
+
+  const handleShare = () => {
+    if (canvasRef.current) sharePoster(canvasRef.current, cert.fullName, window.location.href);
+  };
+
+  const layout = ['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default';
+
+  return (
+    <>
+      {showEdit && (
+        <EditCertModal
+          current={cert}
+          onSave={(updated) => setCert(c => ({ ...c, ...updated }))}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
+
+      <div className="text-center pt-8">
+        <div className="w-16 h-16 bg-[#dcfce7] text-[#22c55e] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+          <Check className="w-8 h-8" strokeWidth={3} />
+        </div>
+        <h2 className="text-3xl font-extrabold text-[#111827] mb-2 tracking-tight">Pledge Taken! <span className="ml-1">🎉</span></h2>
+        <p className="text-gray-500 mb-10">Thank you, <span className="font-bold text-gray-900">{cert.fullName}</span>.<br/>You have successfully pledged to honor the impact.</p>
+
+        {/* Hidden HD Canvas for Download */}
+        <div className="hidden">
+          <PledgePosterCanvas
+            ref={canvasRef}
+            userName={cert.fullName}
+            pledgeName={pledge.name}
+            date={today}
+            bgImageUrl={pledge.bgImageUrl}
+            userPhotoUrl={cert.photoUrl}
+            width={1080}
+            layout={layout}
+          />
+        </div>
+
+        <div className="max-w-[400px] mx-auto mb-4 shadow-2xl shadow-black/10 rounded-[1.5rem] overflow-hidden pointer-events-none bg-white">
+          <PledgePosterCanvas
+            userName={cert.fullName}
+            pledgeName={pledge.name}
+            date={today}
+            bgImageUrl={pledge.bgImageUrl}
+            userPhotoUrl={cert.photoUrl}
+            width={800}
+            layout={layout}
+          />
+        </div>
+
+        {/* Edit Details */}
+        <button
+          onClick={() => setShowEdit(true)}
+          className="mb-8 flex items-center gap-2 mx-auto text-sm font-semibold text-gray-500 hover:text-[#f97316] transition-colors"
         >
-          ⬇ Download
+          <Edit2 className="w-4 h-4" /> Edit Details
         </button>
-        <button 
-          onClick={handleShare}
-          className="flex-1 py-4.5 rounded-xl bg-[#f97316] text-white font-bold hover:bg-[#ea580c] transition-colors shadow-md flex items-center justify-center text-[15px]"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg> 
-          Share
-        </button>
+
+        <div className="flex gap-4 max-w-[400px] mx-auto mb-6">
+          <button
+            onClick={handleDownload}
+            className="flex-1 py-4.5 rounded-xl bg-[#292524] text-white font-bold hover:bg-black transition-colors shadow-md flex items-center justify-center text-[15px]"
+          >
+            ⬇ Download
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex-1 py-4.5 rounded-xl bg-[#f97316] text-white font-bold hover:bg-[#ea580c] transition-colors shadow-md flex items-center justify-center text-[15px]"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+            Share
+          </button>
+        </div>
+
+        <div className="max-w-[400px] mx-auto pb-10">
+          <button
+            onClick={onReturnHome}
+            className="w-full py-4.5 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors flex items-center justify-center bg-white text-[15px]"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            RETURN HOME
+          </button>
+        </div>
       </div>
-      
-      <div className="max-w-[400px] mx-auto pb-10">
-        <button 
-          onClick={onReturnHome}
-          className="w-full py-4.5 rounded-xl border-2 border-gray-200 text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-colors flex items-center justify-center bg-white text-[15px]"
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          RETURN HOME
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
