@@ -21,21 +21,26 @@ export const sharePoster = async (
   pledgeUrl: string
 ): Promise<void> => {
   return new Promise((resolve) => {
-    canvas.toBlob(async (blob) => {
-      if (!blob) { resolve(); return; }
-      const file = new File([blob], 'pledge_poster.png', { type: 'image/png' });
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: 'My PledgeMarks Pledge',
-            text: `I just took a pledge on PledgeMarks. Join me! ${pledgeUrl}`,
-          });
-        } catch { /* user cancelled */ }
-      } else {
-        downloadPoster(canvas, userName);
-      }
+    try {
+      canvas.toBlob(async (blob) => {
+        if (!blob) { resolve(); return; }
+        const file = new File([blob], 'pledge_poster.png', { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'My PledgeMarks Pledge',
+              text: `I just took a pledge on PledgeMarks. Join me! ${pledgeUrl}`,
+            });
+          } catch { /* user cancelled */ }
+        } else {
+          downloadPoster(canvas, userName);
+        }
+        resolve();
+      }, 'image/png');
+    } catch (e) {
+      console.error('Share failed:', e);
       resolve();
-    }, 'image/png');
+    }
   });
 };

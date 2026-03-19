@@ -28,7 +28,8 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       const h     = Math.round(1350 * scale);
       canvas.width  = width;
       canvas.height = h;
-      const ctx = canvas.getContext('2d', { alpha: false })!;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
