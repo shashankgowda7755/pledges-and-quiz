@@ -184,47 +184,54 @@ function CameraModal({ onCapture, onClose }: { onCapture: (src: string) => void;
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      {/* Close button — always visible top-right */}
-      <button
-        onClick={stopAndClose}
-        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white backdrop-blur-sm"
-      >
-        <X className="w-5 h-5" />
-      </button>
+    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center">
+      <div className="relative w-full h-full max-w-2xl max-h-screen flex flex-col bg-black">
+        {/* Close button */}
+        <button
+          onClick={stopAndClose}
+          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white"
+        >
+          <X className="w-5 h-5" />
+        </button>
 
-      {error ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-white text-center p-8 gap-6">
-          <Camera className="w-12 h-12 text-gray-500" />
-          <p className="text-lg font-medium">{error}</p>
-          <button onClick={stopAndClose} className="px-6 py-3 bg-white text-black rounded-xl font-bold">Close</button>
-        </div>
-      ) : (
-        <>
-          <video ref={videoRef} autoPlay playsInline muted className="flex-1 w-full object-cover" />
-          <div className="px-8 py-6 flex justify-between items-center bg-black">
-            {/* Flip camera */}
-            <button
-              onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
-              className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white"
-            >
-              <RefreshCw className="w-5 h-5" />
-            </button>
-
-            {/* Shutter button */}
-            <button
-              onClick={capture}
-              className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"
-              style={{ boxShadow: '0 0 0 4px rgba(255,255,255,0.3)' }}
-            >
-              <div className="w-16 h-16 rounded-full bg-white border-4 border-black" />
-            </button>
-
-            {/* Spacer to balance layout */}
-            <div className="w-12 h-12" />
+        {error ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-white text-center p-8 gap-6">
+            <Camera className="w-12 h-12 text-gray-500" />
+            <p className="text-lg font-medium">{error}</p>
+            <button onClick={stopAndClose} className="px-6 py-3 bg-white text-black rounded-xl font-bold">Close</button>
           </div>
-        </>
-      )}
+        ) : (
+          <>
+            {/* Video — fills available space but never pushes controls off screen */}
+            <div className="flex-1 overflow-hidden">
+              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+            </div>
+
+            {/* Controls — always visible at bottom */}
+            <div className="flex-shrink-0 px-8 py-6 flex justify-between items-center bg-black">
+              {/* Flip */}
+              <button
+                onClick={() => setFacingMode(f => f === 'user' ? 'environment' : 'user')}
+                className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+
+              {/* Shutter */}
+              <button
+                onClick={capture}
+                className="w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+                style={{ background: 'white', boxShadow: '0 0 0 5px rgba(255,255,255,0.25), 0 0 0 10px rgba(255,255,255,0.08)' }}
+              >
+                <div className="w-[60px] h-[60px] rounded-full bg-white border-[3px] border-black" />
+              </button>
+
+              {/* Balance spacer */}
+              <div className="w-12 h-12" />
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
