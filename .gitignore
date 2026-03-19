@@ -42,6 +42,11 @@ models.json
 # SQLite dev database
 prisma/dev.db
 prisma/dev.db-journal
+prisma/prisma/
+prisma/migrations/
+
+# Claude AI local config
+.claude/
 
 # typescript
 *.tsbuildinfo
