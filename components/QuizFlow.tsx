@@ -740,7 +740,7 @@ function QuizSuccess({ quiz, userData: initialUserData }: { quiz: QuizWithQuesti
           onClick={() => setShowEdit(true)}
           className="mb-8 flex items-center gap-2 mx-auto text-sm font-semibold text-gray-500 hover:text-teal-600 transition-colors"
         >
-          <Edit2 className="w-4 h-4" /> Edit name / photo
+          <Edit2 className="w-4 h-4" /> Edit Details
         </button>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto mb-10">
