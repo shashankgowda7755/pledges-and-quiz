@@ -575,73 +575,195 @@ function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: {
   );
 }
 
-function QuizSuccess({ quiz, userData }: { quiz: QuizWithQuestions, userData: UserData }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const today = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+function EditCertModal({ current, onSave, onClose }: {
+  current: UserData;
+  onSave: (updated: Pick<UserData, 'fullName' | 'photoUrl'>) => void;
+  onClose: () => void;
+}) {
+  const [name, setName]           = useState(current.fullName);
+  const [photoUrl, setPhotoUrl]   = useState<string | null>(current.photoUrl);
+  const [rawImageSrc, setRawImg]  = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const galleryRef                = useRef<HTMLInputElement>(null);
 
-  const handleDownload = () => {
-    if (canvasRef.current) downloadPoster(canvasRef.current, userData.fullName, 'Quiz');
-  };
-
-  const handleShare = () => {
-    if (canvasRef.current) sharePoster(canvasRef.current, userData.fullName, window.location.href);
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setRawImg(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center max-w-2xl mx-auto w-full">
-      <div className="w-16 h-16 bg-teal-100 text-teal-500 rounded-full flex items-center justify-center mx-auto mb-6">
-        <Check className="w-8 h-8" />
-      </div>
-      <h2 className="text-3xl font-montserrat font-bold text-gray-900 mb-2">🎉 Your Certificate is Ready!</h2>
-      <p className="text-gray-600 mb-8">Great job, {userData.fullName}! Your achievement is now officially recognized.</p>
-
-      <div className="hidden">
-        <PledgePosterCanvas
-          ref={canvasRef}
-          userName={userData.fullName}
-          pledgeName={quiz.title}
-          date={today}
-          bgImageUrl={quiz.bgImageUrl}
-          userPhotoUrl={userData.photoUrl}
-          width={1080}
-          isQuiz={true}
-          layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+    <>
+      {showCamera && (
+        <CameraModal
+          onCapture={(src) => { setShowCamera(false); setRawImg(src); }}
+          onClose={() => setShowCamera(false)}
         />
-      </div>
-
-      <div className="max-w-sm mx-auto mb-8 shadow-xl rounded-xl overflow-hidden pointer-events-none">
-        <PledgePosterCanvas
-          userName={userData.fullName}
-          pledgeName={quiz.title}
-          date={today}
-          bgImageUrl={quiz.bgImageUrl}
-          userPhotoUrl={userData.photoUrl}
-          width={720}
-          isQuiz={true}
-          layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+      )}
+      {rawImageSrc && (
+        <PhotoCropModal
+          imageSrc={rawImageSrc}
+          onClose={() => setRawImg(null)}
+          onCropSave={(cropped) => { setPhotoUrl(cropped); setRawImg(null); }}
         />
-      </div>
+      )}
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto mb-10">
-        <button
-          onClick={handleDownload}
-          className="flex-1 py-4 px-6 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-600 shadow-lg shadow-teal-500/20 transition-all flex justify-center items-center gap-2"
-        >
-          <span>⬇️</span> Download Certificate (PNG)
-        </button>
-        <button
-          onClick={handleShare}
-          className="flex-1 py-4 px-6 rounded-full bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors"
-        >
-          📤 Share
-        </button>
-      </div>
+      <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/60 p-4">
+        <div className="bg-white rounded-[1.5rem] w-full max-w-sm overflow-hidden">
+          {/* Header */}
+          <div className="flex justify-between items-center px-6 pt-6 pb-4 border-b border-gray-100">
+            <h3 className="font-bold text-gray-900 text-lg">Edit Certificate</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-      <div className="pt-8 border-t border-gray-100 flex flex-col sm:flex-row gap-4 justify-center text-sm font-medium">
-        <Link href="/quiz" className="text-teal-600 hover:text-teal-700">Take Another Quiz →</Link>
-        <span className="hidden sm:inline text-gray-300">|</span>
-        <Link href="/organizations" className="text-gray-500 hover:text-gray-800">Bring to Your Organization →</Link>
+          <div className="p-6 space-y-5">
+            {/* Photo */}
+            <div className="flex flex-col items-center gap-3">
+              <div
+                onClick={() => galleryRef.current?.click()}
+                className="w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden relative group"
+              >
+                {photoUrl
+                  ? <img src={photoUrl} className="w-full h-full object-cover" alt="photo" />
+                  : <Camera className="w-7 h-7 text-gray-400" />
+                }
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Edit2 className="w-5 h-5 text-white" />
+                </div>
+              </div>
+              <input ref={galleryRef} type="file" accept="image/*" style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }} onChange={handleFile} />
+              <div className="flex gap-4 text-[11px] font-bold text-teal-600 uppercase tracking-widest">
+                <button type="button" onClick={() => galleryRef.current?.click()}>Gallery</button>
+                <span className="text-gray-300">|</span>
+                <button type="button" onClick={() => setShowCamera(true)}>Camera</button>
+              </div>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Name on Certificate</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900"
+                placeholder="Your name"
+              />
+            </div>
+          </div>
+
+          <div className="px-6 pb-6 flex gap-3">
+            <button onClick={onClose} className="flex-1 py-3 rounded-xl border-2 border-gray-100 text-gray-600 font-bold hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={() => { onSave({ fullName: name, photoUrl }); onClose(); }}
+              disabled={name.trim().length < 2}
+              className="flex-1 py-3 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Update
+            </button>
+          </div>
+        </div>
       </div>
-    </div >
+    </>
+  );
+}
+
+function QuizSuccess({ quiz, userData: initialUserData }: { quiz: QuizWithQuestions, userData: UserData }) {
+  const canvasRef   = useRef<HTMLCanvasElement>(null);
+  const today       = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+  const [cert, setCert]       = useState(initialUserData);
+  const [showEdit, setShowEdit] = useState(false);
+
+  const handleDownload = () => {
+    if (canvasRef.current) downloadPoster(canvasRef.current, cert.fullName, 'Quiz');
+  };
+
+  const handleShare = () => {
+    if (canvasRef.current) sharePoster(canvasRef.current, cert.fullName, window.location.href);
+  };
+
+  return (
+    <>
+      {showEdit && (
+        <EditCertModal
+          current={cert}
+          onSave={(updated) => setCert(c => ({ ...c, ...updated }))}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center max-w-2xl mx-auto w-full">
+        <div className="w-16 h-16 bg-teal-100 text-teal-500 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Check className="w-8 h-8" />
+        </div>
+        <h2 className="text-3xl font-montserrat font-bold text-gray-900 mb-2">🎉 Your Certificate is Ready!</h2>
+        <p className="text-gray-600 mb-8">Great job, {cert.fullName}! Your achievement is now officially recognized.</p>
+
+        {/* Hidden HD canvas for download */}
+        <div className="hidden">
+          <PledgePosterCanvas
+            ref={canvasRef}
+            userName={cert.fullName}
+            pledgeName={quiz.title}
+            date={today}
+            bgImageUrl={quiz.bgImageUrl}
+            userPhotoUrl={cert.photoUrl}
+            width={1080}
+            isQuiz={true}
+            layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+          />
+        </div>
+
+        {/* Preview */}
+        <div className="max-w-sm mx-auto mb-4 shadow-xl rounded-xl overflow-hidden pointer-events-none">
+          <PledgePosterCanvas
+            userName={cert.fullName}
+            pledgeName={quiz.title}
+            date={today}
+            bgImageUrl={quiz.bgImageUrl}
+            userPhotoUrl={cert.photoUrl}
+            width={720}
+            isQuiz={true}
+            layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+          />
+        </div>
+
+        {/* Edit certificate */}
+        <button
+          onClick={() => setShowEdit(true)}
+          className="mb-8 flex items-center gap-2 mx-auto text-sm font-semibold text-gray-500 hover:text-teal-600 transition-colors"
+        >
+          <Edit2 className="w-4 h-4" /> Edit name / photo
+        </button>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto mb-10">
+          <button
+            onClick={handleDownload}
+            className="flex-1 py-4 px-6 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-600 shadow-lg shadow-teal-500/20 transition-all flex justify-center items-center gap-2"
+          >
+            <span>⬇️</span> Download Certificate (PNG)
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex-1 py-4 px-6 rounded-full bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors"
+          >
+            📤 Share
+          </button>
+        </div>
+
+        <div className="pt-8 border-t border-gray-100 flex flex-col sm:flex-row gap-4 justify-center text-sm font-medium">
+          <Link href="/quiz" className="text-teal-600 hover:text-teal-700">Take Another Quiz →</Link>
+          <span className="hidden sm:inline text-gray-300">|</span>
+          <Link href="/organizations" className="text-gray-500 hover:text-gray-800">Bring to Your Organization →</Link>
+        </div>
+      </div>
+    </>
   );
 }
