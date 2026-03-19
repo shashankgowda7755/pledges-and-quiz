@@ -25,11 +25,12 @@ interface UserData {
   orgId?: string;
 }
 
-export function QuizFlow({ quiz }: { quiz: QuizWithQuestions }) {
+export function QuizFlow({ quiz, orgId, posterUrl }: { quiz: QuizWithQuestions; orgId?: string; posterUrl?: string }) {
   const [currentStep, setCurrentStep] = useState<QuizStep>('form');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true });
+  const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, orgId });
   const [scoreData, setScoreData] = useState<{ score: number, total: number } | null>(null);
+  const activePosterUrl = posterUrl ?? quiz.bgImageUrl;
 
   const goToStep = (step: QuizStep) => {
     setIsTransitioning(true);
@@ -67,6 +68,7 @@ export function QuizFlow({ quiz }: { quiz: QuizWithQuestions }) {
             quiz={quiz}
             userData={userData}
             scoreData={scoreData}
+            posterUrl={activePosterUrl}
             onRetake={() => {
               setScoreData(null);
               goToStep('form');
@@ -81,6 +83,7 @@ export function QuizFlow({ quiz }: { quiz: QuizWithQuestions }) {
           <QuizSuccess
             quiz={quiz}
             userData={userData}
+            posterUrl={activePosterUrl}
           />
         )}
       </main>
@@ -530,10 +533,11 @@ function QuizEngine({ quiz, userData, onComplete }: {
   );
 }
 
-function QuizCertPreview({ quiz, userData: initialUserData, scoreData, onRetake, onConfirm }: {
+function QuizCertPreview({ quiz, userData: initialUserData, scoreData, posterUrl, onRetake, onConfirm }: {
   quiz: QuizWithQuestions;
   userData: UserData;
   scoreData: { score: number; total: number } | null;
+  posterUrl: string;
   onRetake: () => void;
   onConfirm: (updated: UserData) => void;
 }) {
@@ -595,7 +599,7 @@ function QuizCertPreview({ quiz, userData: initialUserData, scoreData, onRetake,
             userName={cert.fullName}
             pledgeName={quiz.title}
             date={today}
-            bgImageUrl={quiz.bgImageUrl}
+            bgImageUrl={posterUrl}
             userPhotoUrl={cert.photoUrl}
             width={720}
             isQuiz={true}
@@ -708,7 +712,7 @@ function EditCertModal({ current, onSave, onClose }: {
   );
 }
 
-function QuizSuccess({ quiz, userData: initialUserData }: { quiz: QuizWithQuestions, userData: UserData }) {
+function QuizSuccess({ quiz, userData: initialUserData, posterUrl }: { quiz: QuizWithQuestions, userData: UserData, posterUrl: string }) {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
   const today       = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
   const [cert, setCert]       = useState(initialUserData);
@@ -746,7 +750,7 @@ function QuizSuccess({ quiz, userData: initialUserData }: { quiz: QuizWithQuesti
             userName={cert.fullName}
             pledgeName={quiz.title}
             date={today}
-            bgImageUrl={quiz.bgImageUrl}
+            bgImageUrl={posterUrl}
             userPhotoUrl={cert.photoUrl}
             width={1080}
             isQuiz={true}
@@ -760,7 +764,7 @@ function QuizSuccess({ quiz, userData: initialUserData }: { quiz: QuizWithQuesti
             userName={cert.fullName}
             pledgeName={quiz.title}
             date={today}
-            bgImageUrl={quiz.bgImageUrl}
+            bgImageUrl={posterUrl}
             userPhotoUrl={cert.photoUrl}
             width={720}
             isQuiz={true}
