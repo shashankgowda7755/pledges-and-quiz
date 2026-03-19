@@ -71,7 +71,10 @@ export function QuizFlow({ quiz }: { quiz: QuizWithQuestions }) {
               setScoreData(null);
               goToStep('form');
             }}
-            onConfirm={() => goToStep('success')}
+            onConfirm={(updated) => {
+              setUserData(updated);
+              goToStep('success');
+            }}
           />
         )}
         {currentStep === 'success' && (
@@ -524,23 +527,34 @@ function QuizEngine({ quiz, userData, onComplete }: {
   );
 }
 
-function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: {
+function QuizCertPreview({ quiz, userData: initialUserData, scoreData, onRetake, onConfirm }: {
   quiz: QuizWithQuestions;
   userData: UserData;
   scoreData: { score: number; total: number } | null;
   onRetake: () => void;
-  onConfirm: () => void;
+  onConfirm: (updated: UserData) => void;
 }) {
   const today = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
+  const [cert, setCert]         = useState(initialUserData);
+  const [showEdit, setShowEdit] = useState(false);
 
   return (
+    <>
+      {showEdit && (
+        <EditCertModal
+          current={cert}
+          onSave={(updated) => setCert(c => ({ ...c, ...updated }))}
+          onClose={() => setShowEdit(false)}
+        />
+      )}
+
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden w-full max-w-5xl mx-auto flex flex-col md:flex-row">
       <div className="p-10 md:w-2/5 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-100 bg-gray-50/50">
         <h2 className="text-3xl font-montserrat font-bold text-gray-900 mb-2">Quiz Complete!</h2>
         <p className="text-gray-600 mb-8">You've unlocked your certificate of completion.</p>
 
         {scoreData && (
-          <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-10 shadow-sm text-center">
+          <div className="bg-white rounded-2xl p-6 border border-gray-200 mb-6 shadow-sm text-center">
             <div className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Your Score</div>
             <div className="text-5xl font-ibm-mono font-bold text-teal-500">
               {scoreData.score} <span className="text-2xl text-gray-300">/ {scoreData.total}</span>
@@ -548,9 +562,17 @@ function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: {
           </div>
         )}
 
+        {/* Edit Details */}
+        <button
+          onClick={() => setShowEdit(true)}
+          className="flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-teal-600 transition-colors mb-8"
+        >
+          <Edit2 className="w-4 h-4" /> Edit Details
+        </button>
+
         <div className="space-y-4 mt-auto">
           <button
-            onClick={onConfirm}
+            onClick={() => onConfirm(cert)}
             className="w-full py-4 px-6 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-600 transition-colors shadow-lg shadow-teal-500/20"
           >
             Generate My Certificate
@@ -567,11 +589,11 @@ function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: {
       <div className="p-10 md:w-3/5 bg-gray-100 flex items-center justify-center">
         <div className="w-full max-w-sm shadow-2xl rounded-xl overflow-hidden pointer-events-none">
           <PledgePosterCanvas
-            userName={userData.fullName}
+            userName={cert.fullName}
             pledgeName={quiz.title}
             date={today}
             bgImageUrl={quiz.bgImageUrl}
-            userPhotoUrl={userData.photoUrl}
+            userPhotoUrl={cert.photoUrl}
             width={720}
             isQuiz={true}
             layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
@@ -579,6 +601,7 @@ function QuizCertPreview({ quiz, userData, scoreData, onRetake, onConfirm }: {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
