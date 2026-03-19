@@ -59,7 +59,7 @@ async function main() {
     { slug: 'ocean-basics', title: 'Ocean Conservation Basics', category: 'environment' },
     { slug: 'sustainable-101', title: 'Sustainable Living 101', category: 'lifestyle' },
     { slug: 'mental-wellness', title: 'Mental Wellness Check', category: 'health' },
-    { slug: 'house-sparrow', title: 'House Sparrow Challenge', category: 'environment' },
+    { slug: 'house-sparrow', title: 'Bring Back the Chirp', category: 'environment' },
   ]
 
   for (const q of quizzes) {
