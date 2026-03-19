@@ -17,8 +17,9 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   };
 }
 
-export default async function QuizLandingPage(context: { params: Promise<{ slug: string }> }) {
+export default async function QuizLandingPage(context: { params: Promise<{ slug: string }>; searchParams: Promise<{ org?: string }> }) {
   const { slug } = await context.params;
+  const { org } = await context.searchParams;
   const quiz = await prisma.quiz.findUnique({
     where: { slug },
     include: { _count: { select: { attempts: true, questions: true } } }
@@ -60,7 +61,7 @@ export default async function QuizLandingPage(context: { params: Promise<{ slug:
              <p className="mt-2 text-sm text-teal-700">{quiz._count.attempts.toLocaleString()} people have taken this quiz.</p>
           </div>
           
-          <Link href={`/quiz/${quiz.slug}/take`} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
+          <Link href={`/quiz/${quiz.slug}/take${org ? `?org=${org}` : ''}`} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
             Start Quiz
           </Link>
         </section>
