@@ -71,10 +71,8 @@ export function Footer() {
         </div>
         <div className="pt-8 border-t border-gray-200 text-center text-gray-500">
           <div className="flex justify-center mb-3">
-            <div style={{ backgroundColor: '#1a3a2a', borderRadius: 10, padding: '10px 20px', display: 'inline-flex', alignItems: 'center' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 40, width: 'auto', display: 'block' }} />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 40, width: 'auto', display: 'block', filter: 'brightness(0) invert(0.5) sepia(1) hue-rotate(110deg) saturate(5) brightness(0.55)' }} />
           </div>
           <p className="font-medium text-gray-900 mb-1">COMMUNITREE — Turn Intention into Action.</p>
           <p>© {new Date().getFullYear()} COMMUNITREE.</p>

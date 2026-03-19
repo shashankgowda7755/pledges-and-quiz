@@ -8,20 +8,20 @@ async function main() {
   console.log('Seeding quizzes...')
 
   const quizzes = [
-    { slug: 'sustainable-101', title: 'Sustainable Living 101', category: 'lifestyle' },
-    { slug: 'house-sparrow', title: 'Bring Back the Chirp', category: 'environment' },
+    { slug: 'sustainable-101', title: 'Sustainable Living 101', category: 'lifestyle', bgImageUrl: '/images/quizzes/sustainable-101.png' },
+    { slug: 'house-sparrow', title: 'Bring Back the Chirp', category: 'environment', bgImageUrl: '/images/quizzes/sparrow-rotary.png' },
   ]
 
   for (const q of quizzes) {
     const quiz = await prisma.quiz.upsert({
       where: { slug: q.slug },
-      update: {},
+      update: { bgImageUrl: q.bgImageUrl },
       create: {
         slug: q.slug,
         title: q.title,
         description: `Attend the quiz, explore ${q.title.toLowerCase()}, and earn your certificate!`,
         category: q.category,
-        bgImageUrl: `/images/quizzes/${q.slug}.png`,
+        bgImageUrl: q.bgImageUrl,
         isFeatured: true
       }
     })

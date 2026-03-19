@@ -10,11 +10,13 @@ datasource db {
 
 model Organization {
   id                 String       @id @default(cuid())
+  slug               String       @unique
   name               String
   logoUrl            String?
   posterLogoUrl      String?
   posterLogoPosition String? // Was Json, changed to String for SQLite
   // { "x": 200, "y": 1100, "w": 150 } — pixel coords at 1080px canvas width
+  quizPosterUrl      String?      // Overrides the quiz bgImageUrl for org-specific poster
   contactEmail       String
   type               String       // school | ngo | company | other
   isActive           Boolean      @default(true)

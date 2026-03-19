@@ -11,10 +11,8 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center">
-            <div style={{ backgroundColor: '#1a3a2a', borderRadius: 10, padding: '8px 16px', display: 'inline-flex', alignItems: 'center' }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 36, width: 'auto', display: 'block' }} />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 44, width: 'auto', display: 'block', filter: 'brightness(0) invert(0.5) sepia(1) hue-rotate(110deg) saturate(5) brightness(0.55)' }} />
           </Link>
 
           <nav className="hidden md:flex space-x-8 items-center">
