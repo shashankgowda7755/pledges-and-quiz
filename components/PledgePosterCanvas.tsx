@@ -25,8 +25,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       if (!canvas) return;
 
       const scale = width / 1080;
-      // A4 ratio matching the sparrow poster (2480 × 3508)
-      const h     = Math.round((3508 / 2480) * width);
+      const h     = Math.round(1350 * scale);
       canvas.width  = width;
       canvas.height = h;
       const ctx = canvas.getContext('2d');
@@ -44,17 +43,15 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         ctx.fillRect(0, 0, width, h);
       }
 
-      // 2. Photo — white square placeholder in the upper-right of the sparrow poster
-      // Source image: 2480 × 3508 (A4 @ 300 DPI)
-      // White card slot: x=1165, y=455, w=1060, h=1445, rotation ≈ -3°
-      const baseW = 2480;
-      const baseH = 3508;
+      // 2. Photo — rectangle slot matched to the white placeholder on the poster
+      const baseW = 2500;
+      const baseH = 3536;
 
-      const rx = (1165 / baseW) * width;
-      const ry = (455  / baseH) * h;
-      const rw = (1060 / baseW) * width;
-      const rh = (1445 / baseH) * h;
-      const angle = -3 * (Math.PI / 180);
+      const rx = ((1321.2 + 190) / baseW) * width;
+      const ry = ((720.3 + 100) / baseH) * h;
+      const rw = ((998 - 190) / baseW) * width;
+      const rh = (974.1 / baseH) * h;
+      const angle = -10.2 * (Math.PI / 180);
 
       if (userPhotoUrl) {
         try {
@@ -78,21 +75,20 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         } catch { /* skip */ }
       }
 
-      // 3. Name — just below the white photo card, right-aligned to card's right edge
+      // 3. Name — below the photo, centred on the slot
       if (userName) {
         const fontMontserrat = getComputedStyle(document.documentElement)
           .getPropertyValue('--font-montserrat') || 'Montserrat';
 
-        // Right edge of card: x=1165+1060=2225, y just below card: 455+1445+40=1940
-        const nameXBase  = 2225;
-        const nameYBase  = 1940;
-        const nameMaxW   = (1060 / baseW) * width;
+        const nameXBase  = 992.4 + 1345.9;
+        const nameYBase  = 1950.4 + (185.1 / 2);
+        const nameMaxW   = (1345.9 / baseW) * width;
 
         const nameX = (nameXBase / baseW) * width;
         const nameY = (nameYBase / baseH) * h;
 
         const maxLen = Math.max(1, userName.length);
-        const fs     = (maxLen > 18 ? 46 : maxLen > 12 ? 58 : 72) * scale;
+        const fs     = (maxLen > 18 ? 50 : maxLen > 12 ? 65 : 80) * scale;
 
         ctx.shadowColor  = 'transparent';
         ctx.shadowBlur   = 0;
