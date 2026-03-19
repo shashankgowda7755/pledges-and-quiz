@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
-  ({ userName, bgImageUrl, userPhotoUrl, width = 1080 }, ref) => {
+  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, orgLogoUrl, logoPosition }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
@@ -109,7 +109,25 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       ctx.shadowBlur = 0;
       ctx.fillText('communitree.in', width - 20 * scale, h - 16 * scale);
 
-    }, [userName, bgImageUrl, userPhotoUrl, width]);
+      // 5. Org logo overlay
+      if (orgLogoUrl) {
+        try {
+          const logo = await loadImage(orgLogoUrl);
+          let lx = 200 * scale, ly = 1100 * scale, lw = 150 * scale;
+          if (logoPosition) {
+            try {
+              const pos = JSON.parse(logoPosition);
+              if (pos.x !== undefined) lx = pos.x * scale;
+              if (pos.y !== undefined) ly = pos.y * scale;
+              if (pos.w !== undefined) lw = pos.w * scale;
+            } catch { /* use defaults */ }
+          }
+          const lh = (logo.height / logo.width) * lw;
+          ctx.drawImage(logo, lx, ly, lw, lh);
+        } catch { /* skip if logo fails */ }
+      }
+
+    }, [userName, bgImageUrl, userPhotoUrl, width, orgLogoUrl, logoPosition]);
 
     useEffect(() => { draw(); }, [draw]);
 

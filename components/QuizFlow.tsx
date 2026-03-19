@@ -25,7 +25,7 @@ interface UserData {
   orgId?: string;
 }
 
-export function QuizFlow({ quiz, orgId, posterUrl }: { quiz: QuizWithQuestions; orgId?: string; posterUrl?: string }) {
+export function QuizFlow({ quiz, orgId, posterUrl, orgLogoUrl, logoPosition }: { quiz: QuizWithQuestions; orgId?: string; posterUrl?: string; orgLogoUrl?: string | null; logoPosition?: string | null }) {
   const [currentStep, setCurrentStep] = useState<QuizStep>('form');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, orgId });
@@ -69,6 +69,8 @@ export function QuizFlow({ quiz, orgId, posterUrl }: { quiz: QuizWithQuestions; 
             userData={userData}
             scoreData={scoreData}
             posterUrl={activePosterUrl}
+            orgLogoUrl={orgLogoUrl}
+            logoPosition={logoPosition}
             onRetake={() => {
               setScoreData(null);
               goToStep('form');
@@ -84,6 +86,8 @@ export function QuizFlow({ quiz, orgId, posterUrl }: { quiz: QuizWithQuestions; 
             quiz={quiz}
             userData={userData}
             posterUrl={activePosterUrl}
+            orgLogoUrl={orgLogoUrl}
+            logoPosition={logoPosition}
           />
         )}
       </main>
@@ -533,11 +537,13 @@ function QuizEngine({ quiz, userData, onComplete }: {
   );
 }
 
-function QuizCertPreview({ quiz, userData: initialUserData, scoreData, posterUrl, onRetake, onConfirm }: {
+function QuizCertPreview({ quiz, userData: initialUserData, scoreData, posterUrl, orgLogoUrl, logoPosition, onRetake, onConfirm }: {
   quiz: QuizWithQuestions;
   userData: UserData;
   scoreData: { score: number; total: number } | null;
   posterUrl: string;
+  orgLogoUrl?: string | null;
+  logoPosition?: string | null;
   onRetake: () => void;
   onConfirm: (updated: UserData) => void;
 }) {
@@ -604,6 +610,8 @@ function QuizCertPreview({ quiz, userData: initialUserData, scoreData, posterUrl
             width={720}
             isQuiz={true}
             layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+            orgLogoUrl={orgLogoUrl}
+            logoPosition={logoPosition}
           />
         </div>
       </div>
@@ -712,7 +720,7 @@ function EditCertModal({ current, onSave, onClose }: {
   );
 }
 
-function QuizSuccess({ quiz, userData: initialUserData, posterUrl }: { quiz: QuizWithQuestions, userData: UserData, posterUrl: string }) {
+function QuizSuccess({ quiz, userData: initialUserData, posterUrl, orgLogoUrl, logoPosition }: { quiz: QuizWithQuestions, userData: UserData, posterUrl: string, orgLogoUrl?: string | null, logoPosition?: string | null }) {
   const canvasRef   = useRef<HTMLCanvasElement>(null);
   const today       = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
   const [cert, setCert]       = useState(initialUserData);
@@ -755,6 +763,8 @@ function QuizSuccess({ quiz, userData: initialUserData, posterUrl }: { quiz: Qui
             width={1080}
             isQuiz={true}
             layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+            orgLogoUrl={orgLogoUrl}
+            logoPosition={logoPosition}
           />
         </div>
 
@@ -769,6 +779,8 @@ function QuizSuccess({ quiz, userData: initialUserData, posterUrl }: { quiz: Qui
             width={720}
             isQuiz={true}
             layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+            orgLogoUrl={orgLogoUrl}
+            logoPosition={logoPosition}
           />
         </div>
 

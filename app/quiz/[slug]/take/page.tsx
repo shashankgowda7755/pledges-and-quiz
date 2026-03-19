@@ -39,12 +39,14 @@ export default async function TakeQuizPage(context: { params: Promise<{ slug: st
   if (!quiz) notFound();
 
   const posterUrl = org?.quizPosterUrl ?? quiz.bgImageUrl;
+  const orgLogoUrl = org?.posterLogoUrl ?? null;
+  const logoPosition = org?.posterLogoPosition ?? null;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F2F0E9] relative">
       <Header />
       <div className="flex-1">
-        <QuizFlow quiz={quiz} orgId={org?.id} posterUrl={posterUrl} />
+        <QuizFlow quiz={quiz} orgId={org?.id} posterUrl={posterUrl} orgLogoUrl={orgLogoUrl} logoPosition={logoPosition} />
       </div>
     </div>
   );

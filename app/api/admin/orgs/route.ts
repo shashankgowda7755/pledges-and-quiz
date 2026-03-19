@@ -10,7 +10,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, slug, type, quizPosterUrl, contactEmail } = body;
+  const { name, slug, type, quizPosterUrl, contactEmail, posterLogoUrl, posterLogoPosition } = body;
 
   if (!name || !slug || !type || !contactEmail) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
         type,
         quizPosterUrl: quizPosterUrl || null,
         contactEmail,
+        posterLogoUrl: posterLogoUrl || null,
+        posterLogoPosition: posterLogoPosition || null,
       },
     });
     return NextResponse.json(org, { status: 201 });

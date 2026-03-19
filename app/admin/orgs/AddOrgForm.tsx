@@ -23,6 +23,8 @@ export default function AddOrgForm() {
     type: 'school',
     quizPosterUrl: '',
     contactEmail: '',
+    posterLogoUrl: '',
+    posterLogoPosition: '',
   });
 
   const handleNameChange = (value: string) => {
@@ -51,7 +53,7 @@ export default function AddOrgForm() {
         return;
       }
 
-      setForm({ name: '', slug: '', type: 'school', quizPosterUrl: '', contactEmail: '' });
+      setForm({ name: '', slug: '', type: 'school', quizPosterUrl: '', contactEmail: '', posterLogoUrl: '', posterLogoPosition: '' });
       setOpen(false);
       router.refresh();
     } catch {
@@ -157,6 +159,32 @@ export default function AddOrgForm() {
             onChange={(e) => setForm((f) => ({ ...f, quizPosterUrl: e.target.value }))}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900"
             placeholder="/images/quizzes/sparrow-rotary.png"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+            Logo URL (e.g. /images/logos/rotary.png)
+          </label>
+          <input
+            type="text"
+            value={form.posterLogoUrl}
+            onChange={(e) => setForm((f) => ({ ...f, posterLogoUrl: e.target.value }))}
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900"
+            placeholder="/images/logos/rotary.png"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+            {`Logo Position JSON (e.g. {"x":200,"y":1100,"w":150})`}
+          </label>
+          <input
+            type="text"
+            value={form.posterLogoPosition}
+            onChange={(e) => setForm((f) => ({ ...f, posterLogoPosition: e.target.value }))}
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-mono text-gray-900"
+            placeholder={`{"x":200,"y":1100,"w":150}`}
           />
         </div>
 
