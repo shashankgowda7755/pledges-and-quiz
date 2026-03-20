@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? 'communitree2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const COOKIE_NAME = 'admin_token';
 const COOKIE_VALUE = 'admin_authenticated';
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
@@ -8,7 +8,7 @@ const MAX_AGE = 60 * 60 * 24 * 7; // 7 days in seconds
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  if (body.password !== ADMIN_PASSWORD) {
+  if (!ADMIN_PASSWORD || body.password !== ADMIN_PASSWORD) {
     return NextResponse.json({ error: 'Wrong password' }, { status: 401 });
   }
 
