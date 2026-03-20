@@ -6,9 +6,16 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOrgsPage() {
-  const orgs = await prisma.organization.findMany({
-    orderBy: { createdAt: 'desc' },
-  });
+  const [orgs, firstQuiz] = await Promise.all([
+    prisma.organization.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.quiz.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' },
+      select: { slug: true },
+    }),
+  ]);
+
+  const quizSlug = firstQuiz?.slug ?? 'house-sparrow';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -80,7 +87,7 @@ export default async function AdminOrgsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Link
-                          href={`/quiz/house-sparrow?org=${org.slug}`}
+                          href={`/quiz/${quizSlug}?org=${org.slug}`}
                           target="_blank"
                           className="text-teal-600 hover:text-teal-700 font-medium text-xs underline underline-offset-2"
                         >

@@ -22,12 +22,20 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default async function OrganizationsPage() {
-  const orgs = await prisma.organization.findMany({
-    where: { isActive: true },
-    orderBy: { createdAt: 'desc' },
-    select: { name: true, slug: true, type: true, posterLogoUrl: true },
-  });
+  const [orgs, firstQuiz] = await Promise.all([
+    prisma.organization.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+      select: { name: true, slug: true, type: true, posterLogoUrl: true },
+    }),
+    prisma.quiz.findFirst({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' },
+      select: { slug: true },
+    }),
+  ]);
 
+  const quizSlug = firstQuiz?.slug ?? 'house-sparrow';
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://pledges-and-quiz.vercel.app';
 
   return (
@@ -53,7 +61,7 @@ export default async function OrganizationsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {orgs.map((org) => {
-                  const quizUrl = `${APP_URL}/quiz/house-sparrow?org=${org.slug}`;
+                  const quizUrl = `${APP_URL}/quiz/${quizSlug}?org=${org.slug}`;
                   const colorClass = TYPE_COLORS[org.type] ?? TYPE_COLORS.other;
                   const typeLabel = TYPE_LABELS[org.type] ?? 'Organization';
 
@@ -89,7 +97,7 @@ export default async function OrganizationsPage() {
                       {/* Quiz link */}
                       <div className="mt-auto flex flex-col gap-2">
                         <Link
-                          href={`/quiz/house-sparrow?org=${org.slug}`}
+                          href={`/quiz/${quizSlug}?org=${org.slug}`}
                           className="w-full text-center bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl py-3 text-sm transition-colors shadow-sm shadow-teal-500/20"
                         >
                           Take Quiz →

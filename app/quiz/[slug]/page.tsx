@@ -1,9 +1,9 @@
 export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import prisma from '@/lib/prisma';
+import OrgSelector from './OrgSelector';
 
 export async function generateMetadata(context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
@@ -20,10 +20,17 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
 export default async function QuizLandingPage(context: { params: Promise<{ slug: string }>; searchParams: Promise<{ org?: string }> }) {
   const { slug } = await context.params;
   const { org } = await context.searchParams;
-  const quiz = await prisma.quiz.findUnique({
-    where: { slug },
-    include: { _count: { select: { attempts: true, questions: true } } }
-  });
+  const [quiz, orgs] = await Promise.all([
+    prisma.quiz.findUnique({
+      where: { slug },
+      include: { _count: { select: { attempts: true, questions: true } } }
+    }),
+    prisma.organization.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+      select: { slug: true, posterLogoUrl: true }
+    })
+  ]);
 
   if (!quiz) notFound();
 
@@ -61,9 +68,13 @@ export default async function QuizLandingPage(context: { params: Promise<{ slug:
              <p className="mt-2 text-sm text-teal-700">{quiz._count.attempts.toLocaleString()} people have taken this quiz.</p>
           </div>
           
-          <Link href={`/quiz/${quiz.slug}/take${org ? `?org=${org}` : ''}`} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
-            Start Quiz
-          </Link>
+          {orgs.length > 0 ? (
+            <OrgSelector orgs={orgs} quizSlug={quiz.slug} defaultOrg={org} />
+          ) : (
+            <a href={`/quiz/${quiz.slug}/take${org ? `?org=${org}` : ''}`} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
+              Start Quiz
+            </a>
+          )}
         </section>
       </main>
       <Footer />
