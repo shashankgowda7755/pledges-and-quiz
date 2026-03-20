@@ -28,7 +28,7 @@ export default async function QuizLandingPage(context: { params: Promise<{ slug:
     prisma.organization.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
-      select: { slug: true, posterLogoUrl: true }
+      select: { name: true, slug: true, posterLogoUrl: true }
     })
   ]);
 
