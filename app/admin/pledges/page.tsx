@@ -19,9 +19,9 @@ export default async function AdminPledgesPage() {
             {pledges.length} total pledge{pledges.length !== 1 ? 's' : ''} available.
           </p>
         </div>
-        <button disabled className="bg-gray-100 text-gray-400 px-5 py-2.5 rounded-xl font-bold cursor-not-allowed border border-gray-200">
-          + New Pledge (Coming Soon)
-        </button>
+        <Link href="/admin/pledges/new" className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-teal-500/20">
+          + New Pledge
+        </Link>
       </div>
 
       <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden mb-12">

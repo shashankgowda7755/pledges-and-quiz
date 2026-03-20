@@ -71,7 +71,10 @@ export default async function AdminOrgsPage() {
                         ?org={org.slug}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-right flex items-center justify-end gap-2">
+                      <Link href={`/admin/orgs/${org.slug}/edit`} title="Edit Organization" className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-block">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                      </Link>
                       <DeleteOrgButton slug={org.slug} isActive={org.isActive} />
                     </td>
                   </tr>

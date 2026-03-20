@@ -2,16 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, HeartHandshake, CheckSquare, Settings } from 'lucide-react';
+import { Building2, HeartHandshake, CheckSquare, LayoutDashboard, Users } from 'lucide-react';
 import LogoutButton from '../orgs/LogoutButton';
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   const navItems = [
+    { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Organizations', href: '/admin/orgs', icon: Building2 },
     { name: 'Pledges', href: '/admin/pledges', icon: HeartHandshake },
     { name: 'Quizzes', href: '/admin/quizzes', icon: CheckSquare },
+    { name: 'Submissions', href: '/admin/submissions', icon: Users },
   ];
 
   return (

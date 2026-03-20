@@ -1,0 +1,44 @@
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export async function POST(req: NextRequest) {
+  const adminToken = req.cookies.get('admin_token');
+  if (!adminToken) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const body = await req.json();
+    const { slug, title, description, category, bgImageUrl, questions } = body;
+
+    if (!slug || !title || !description || !bgImageUrl || !questions || questions.length === 0) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const newQuiz = await prisma.quiz.create({
+      data: {
+        slug,
+        title,
+        description,
+        category,
+        bgImageUrl,
+        questions: {
+          create: questions.map((q: any, i: number) => ({
+            text: q.text,
+            order: i + 1,
+            answerOptions: {
+              create: q.options.map((opt: any, j: number) => ({
+                text: opt.text,
+                isCorrect: opt.isCorrect,
+                order: j + 1
+              }))
+            }
+          }))
+        }
+      }
+    });
+
+    return NextResponse.json({ ok: true, quiz: newQuiz });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Failed to create quiz. Ensure the slug is unique.' }, { status: 500 });
+  }
+}

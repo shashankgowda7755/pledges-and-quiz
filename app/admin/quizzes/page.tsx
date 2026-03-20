@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import Link from 'next/link';
 import DeleteQuizButton from './DeleteQuizButton';
 
 export const dynamic = 'force-dynamic';
@@ -18,9 +19,9 @@ export default async function AdminQuizzesPage() {
             {quizzes.length} total quiz{quizzes.length !== 1 ? 'zes' : ''} available.
           </p>
         </div>
-        <button disabled className="bg-gray-100 text-gray-400 px-5 py-2.5 rounded-xl font-bold cursor-not-allowed border border-gray-200">
-          + New Quiz (Coming Soon)
-        </button>
+        <Link href="/admin/quizzes/new" className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-teal-500/20">
+          + New Quiz
+        </Link>
       </div>
 
       <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden mb-12">
