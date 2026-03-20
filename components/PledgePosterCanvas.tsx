@@ -139,7 +139,10 @@ PledgePosterCanvas.displayName = 'PledgePosterCanvas';
 const loadImage = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    const isAbsoluteExternal = src.startsWith('http') && !src.startsWith(window.location.origin);
+    if (isAbsoluteExternal) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload  = () => resolve(img);
     img.onerror = (e) => reject(e);
     // Make relative URLs absolute so the canvas context can always resolve them
