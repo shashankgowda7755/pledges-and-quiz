@@ -136,7 +136,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           }
 
           // Name aligned with title column: left edge ~52%, right edge ~80% of width
-          const nameX    = tuning?.nameX ?? (0.52 * width + 2 * scale);
+          const nameX    = tuning?.nameX ?? (0.52 * width + 4 * scale);
           const nameY    = tuning?.nameY ?? (0.34 * h);
           const nameMaxW = (0.80 * width) - nameX;
 
