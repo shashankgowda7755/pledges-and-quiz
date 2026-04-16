@@ -13,7 +13,7 @@ type PledgeStep = 'details' | 'preview' | 'commitments' | 'success';
 
 function getPledgeLayout(slug: string): string {
   if (slug.startsWith('water-')) return 'water';
-  // sparrow layout removed
+  if (slug === 'house-sparrow') return 'sparrow';
   if (slug === 'wooden-earbuds') return 'earbuds';
   return 'default';
 }
