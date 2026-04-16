@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
-  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, orgLogoUrl, logoPosition }, ref) => {
+  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, orgLogoUrl, logoPosition, layout }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
@@ -32,6 +32,104 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       if (!ctx) return;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
+
+      // ── WATER PLEDGE LAYOUT ──────────────────────────────────────────────
+      if (layout === 'water') {
+        // 1. Background poster (full bleed)
+        try {
+          const bg = await loadImage(bgImageUrl);
+          ctx.drawImage(bg, 0, 0, width, h);
+        } catch (err) {
+          console.error('[PosterCanvas] Failed to load background:', bgImageUrl, err);
+          ctx.fillStyle = '#dbeafe';
+          ctx.fillRect(0, 0, width, h);
+        }
+
+        // 2. User photo clipped to water drop shape
+        if (userPhotoUrl) {
+          try {
+            const photo = await loadImage(userPhotoUrl);
+
+            // Water drop bounding box — exact from Canva advanced panel (final version):
+            // X:4.3cm Y:10.07cm W:6.96cm H:10.65cm on 21×29.7cm canvas → 1080×1350px
+            const dropX  = Math.round((4.3  / 21)   * 1080) * scale;  // 221
+            const dropY  = Math.round((10.07 / 29.7) * 1350) * scale;  // 458
+            const dropW  = Math.round((6.96  / 21)   * 1080) * scale;  // 358
+            const dropH  = Math.round((10.65 / 29.7) * 1350) * scale;  // 484
+            const cx     = dropX + dropW / 2;
+            const r      = dropW / 2;     // radius of the circular bottom
+            const circCY = dropY + dropH - r; // centre-Y of the bottom circle
+
+            ctx.save();
+            // Refined teardrop clipping path — narrow tip, gradual swell, circular base
+            ctx.beginPath();
+            ctx.moveTo(cx, dropY); // sharp tip at top
+
+            // Right side: stays narrow for top 30%, then sweeps out to full width
+            ctx.bezierCurveTo(
+              cx + r * 0.22, dropY + dropH * 0.28,  // hug the centreline longer
+              cx + r,        circCY - r * 0.75,       // reach full width near base
+              cx + r,        circCY                   // rightmost point of circle
+            );
+            // Bottom arc: right → left clockwise through bottom
+            ctx.arc(cx, circCY, r, 0, Math.PI);
+            // Left side: mirror of right
+            ctx.bezierCurveTo(
+              cx - r,        circCY - r * 0.75,
+              cx - r * 0.22, dropY + dropH * 0.28,
+              cx,            dropY
+            );
+            ctx.closePath();
+            ctx.clip();
+
+            // Cover-fill photo inside the drop
+            const s  = Math.max(dropW / photo.width, dropH / photo.height);
+            const pw = photo.width * s;
+            const ph = photo.height * s;
+            ctx.drawImage(photo, dropX + (dropW - pw) / 2, dropY + (dropH - ph) / 2, pw, ph);
+            ctx.restore();
+
+            // Re-draw background on top with 'destination-over' to let the
+            // poster's water-drop graphic partially show through the edges
+            // (skip if bg loaded fine — bg is already underneath)
+          } catch { /* skip photo */ }
+        }
+
+        // 3. Name — exact Canva position: X=13.81cm Y=8.95cm W=5.94cm H=1.78cm
+        //    on 21×29.7cm canvas → 1080×1350px. Font: Big Shoulders Display 42.4pt
+        if (userName) {
+          const fontMontserrat = getComputedStyle(document.documentElement)
+            .getPropertyValue('--font-montserrat').trim() || 'Montserrat';
+
+          // Canva → 1080×1350 conversion (final version)
+          // Text box: X=13.97cm Y=10.04cm W=5.94cm H=1.78cm on 21×29.7cm canvas
+          const nameX    = Math.round((13.97 / 21) * 1080) * scale;
+          const nameY    = Math.round(((10.04 + 1.78 / 2) / 29.7) * 1350) * scale;
+          const nameMaxW = Math.round((5.94 / 21) * 1080) * scale;
+          // 42.4pt on 842pt-tall → 68px on 1350px
+          const fs       = 68 * scale;
+
+          ctx.shadowColor  = 'transparent';
+          ctx.shadowBlur   = 0;
+          ctx.textAlign    = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.font         = `900 ${fs}px ${fontMontserrat}, sans-serif`;
+          ctx.fillStyle    = '#0a0a0a';
+          ctx.fillText(userName.toUpperCase(), nameX, nameY, nameMaxW);
+        }
+
+        // 4. Watermark
+        const fontInter = getComputedStyle(document.documentElement)
+          .getPropertyValue('--font-inter') || 'Inter';
+        ctx.font      = `500 ${13 * scale}px ${fontInter}, sans-serif`;
+        ctx.fillStyle = 'rgba(0,0,0,0.22)';
+        ctx.textAlign = 'right';
+        ctx.fillText('communitree.in', width - 20 * scale, h - 16 * scale);
+
+        return; // done with water layout
+      }
+
+      // ── DEFAULT / SPARROW LAYOUT ─────────────────────────────────────────
 
       // 1. Background poster (full bleed)
       try {
@@ -57,12 +155,12 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         try {
           const photo = await loadImage(userPhotoUrl);
           ctx.save();
-          
+
           // Move to center of the photo area to apply rotation
           ctx.translate(rx + rw/2, ry + rh/2);
           ctx.rotate(angle);
           ctx.translate(-(rx + rw/2), -(ry + rh/2));
-          
+
           ctx.beginPath();
           ctx.rect(rx, ry, rw, rh);
           ctx.clip();
@@ -127,7 +225,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         } catch { /* skip if logo fails */ }
       }
 
-    }, [userName, bgImageUrl, userPhotoUrl, width, orgLogoUrl, logoPosition]);
+    }, [userName, bgImageUrl, userPhotoUrl, width, orgLogoUrl, logoPosition, layout]);
 
     useEffect(() => { draw(); }, [draw]);
 

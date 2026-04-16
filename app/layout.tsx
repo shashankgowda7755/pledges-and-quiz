@@ -2,22 +2,22 @@ import type { Metadata } from 'next';
 import { Montserrat, Inter, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 
-const montserrat = Montserrat({ 
-  subsets: ['latin'], 
-  weight: ['400','500','600','700'], 
-  variable: '--font-montserrat' 
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['400','500','600','700','800','900'],
+  variable: '--font-montserrat'
 });
 
-const inter = Inter({ 
-  subsets: ['latin'], 
-  weight: ['400','500','600'], 
-  variable: '--font-inter' 
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400','500','600'],
+  variable: '--font-inter'
 });
 
-const ibmMono = IBM_Plex_Mono({ 
-  subsets: ['latin'], 
-  weight: ['400','600'], 
-  variable: '--font-ibm-mono' 
+const ibmMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400','600'],
+  variable: '--font-ibm-mono'
 });
 
 export const metadata: Metadata = {

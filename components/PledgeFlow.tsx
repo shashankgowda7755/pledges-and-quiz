@@ -11,6 +11,13 @@ import getCroppedImg from '@/utils/cropImage';
 type PledgeWithCommitments = Pledge & { commitments: PledgeCommitment[] };
 type PledgeStep = 'details' | 'preview' | 'commitments' | 'success';
 
+function getPledgeLayout(slug: string): string {
+  if (slug === 'water-pledge') return 'water';
+  if (['house-sparrow', 'sustainable-101'].includes(slug)) return 'sparrow';
+  if (slug === 'wooden-earbuds') return 'earbuds';
+  return 'default';
+}
+
 interface UserData {
   fullName: string;
   whatsapp: string;
@@ -409,14 +416,14 @@ function PledgePreview({ userData, pledge, onBack, onConfirm }: { userData: User
       <p className="text-sm text-gray-500 mb-10">Review your details carefully. This is how your certificate will look.</p>
       
       <div className="max-w-[400px] mx-auto mb-10 shadow-2xl shadow-black/10 rounded-[1.5rem] overflow-hidden bg-white">
-        <PledgePosterCanvas 
+        <PledgePosterCanvas
           userName={userData.fullName}
           pledgeName={pledge.name}
           date={today}
           bgImageUrl={pledge.bgImageUrl}
           userPhotoUrl={userData.photoUrl}
           width={800} // higher res for better anti-aliasing in preview
-          layout={['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default'}
+          layout={getPledgeLayout(pledge.slug)}
         />
       </div>
 
@@ -655,7 +662,7 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
     if (canvasRef.current) sharePoster(canvasRef.current, cert.fullName, window.location.href);
   };
 
-  const layout = ['house-sparrow', 'sustainable-101'].includes(pledge.slug) ? 'sparrow' : pledge.slug === 'wooden-earbuds' ? 'earbuds' : 'default';
+  const layout = getPledgeLayout(pledge.slug);
 
   return (
     <>
