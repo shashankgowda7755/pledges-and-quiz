@@ -4,7 +4,7 @@ import { PledgePosterCanvas } from '@/components/PledgePosterCanvas';
 
 export default function WaterPledgePreview() {
   const [name, setName] = useState('Hafiz Khan');
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>('/images/test-face.jpg');
   const fileRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 

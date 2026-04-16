@@ -53,9 +53,9 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             // Water drop bounding box — exact from Canva advanced panel (final version):
             // X:4.3cm Y:10.07cm W:6.96cm H:10.65cm on 21×29.7cm canvas → 1080×1350px
             const dropX  = Math.round((4.3  / 21)   * 1080) * scale;  // 221
-            const dropY  = Math.round((10.07 / 29.7) * 1350) * scale;  // 458
+            const dropY  = Math.round((8.5  / 29.7) * 1350) * scale;   // shifted up to include tip
             const dropW  = Math.round((6.96  / 21)   * 1080) * scale;  // 358
-            const dropH  = Math.round((10.65 / 29.7) * 1350) * scale;  // 484
+            const dropH  = Math.round((12.2 / 29.7) * 1350) * scale;   // taller to cover full drop
             const cx     = dropX + dropW / 2;
             const r      = dropW / 2;     // radius of the circular bottom
             const circCY = dropY + dropH - r; // centre-Y of the bottom circle
