@@ -289,7 +289,7 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
 
       <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 md:p-12 text-center">
         <div className="inline-block px-4 py-1.5 rounded-full bg-orange-50 text-[#f97316] font-bold text-[10px] uppercase tracking-widest mb-4">
-          MY PLEDGE FOR {pledge.name.toUpperCase()}
+          {pledge.name.toUpperCase()}
         </div>
         <h2 className="text-3xl font-extrabold text-[#111827] mb-12 tracking-tight">Enter Details</h2>
         
