@@ -36,7 +36,7 @@ export default async function OrganizationsPage() {
   ]);
 
   const quizSlug = firstQuiz?.slug ?? 'house-sparrow';
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://pledges-and-quiz.vercel.app';
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://communitreepledges.netlify.app';
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

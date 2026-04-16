@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://pledgemarks.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://communitreepledges.netlify.app';
 
   let pledges: { slug: string; createdAt: Date }[] = [];
   let quizzes: { slug: string; createdAt: Date }[] = [];
