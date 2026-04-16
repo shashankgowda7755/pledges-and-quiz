@@ -609,7 +609,7 @@ function QuizCertPreview({ quiz, userData: initialUserData, scoreData, posterUrl
             userPhotoUrl={cert.photoUrl}
             width={720}
             isQuiz={true}
-            layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+            layout={'default'}
             orgLogoUrl={orgLogoUrl}
             logoPosition={logoPosition}
           />
@@ -762,7 +762,7 @@ function QuizSuccess({ quiz, userData: initialUserData, posterUrl, orgLogoUrl, l
             userPhotoUrl={cert.photoUrl}
             width={1080}
             isQuiz={true}
-            layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+            layout={'default'}
             orgLogoUrl={orgLogoUrl}
             logoPosition={logoPosition}
           />
@@ -778,7 +778,7 @@ function QuizSuccess({ quiz, userData: initialUserData, posterUrl, orgLogoUrl, l
             userPhotoUrl={cert.photoUrl}
             width={720}
             isQuiz={true}
-            layout={['house-sparrow', 'sustainable-101'].includes(quiz.slug) ? 'sparrow' : 'default'}
+            layout={'default'}
             orgLogoUrl={orgLogoUrl}
             logoPosition={logoPosition}
           />
