@@ -113,9 +113,24 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             ctx.drawImage(photo, dropX + (dropW - pw) / 2, dropY + (dropH - ph) / 2, pw, ph);
             ctx.restore();
 
-            // Re-draw background on top with 'destination-over' to let the
-            // poster's water-drop graphic partially show through the edges
-            // (skip if bg loaded fine — bg is already underneath)
+            // Border around the water drop — same color as name font
+            ctx.beginPath();
+            ctx.moveTo(cx, dropY);
+            ctx.bezierCurveTo(
+              cx + r * 0.22, dropY + dropH * 0.28,
+              cx + r,        circCY - r * 0.75,
+              cx + r,        circCY
+            );
+            ctx.arc(cx, circCY, r, 0, Math.PI);
+            ctx.bezierCurveTo(
+              cx - r,        circCY - r * 0.75,
+              cx - r * 0.22, dropY + dropH * 0.28,
+              cx,            dropY
+            );
+            ctx.closePath();
+            ctx.strokeStyle = '#00063d';
+            ctx.lineWidth   = 3 * scale;
+            ctx.stroke();
           } catch { /* skip photo */ }
         }
 
