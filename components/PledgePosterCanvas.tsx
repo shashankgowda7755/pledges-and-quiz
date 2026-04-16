@@ -171,15 +171,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           }
         }
 
-        // 4. Watermark
-        const fontInter = getComputedStyle(document.documentElement)
-          .getPropertyValue('--font-inter') || 'Inter';
-        ctx.font      = `500 ${13 * scale}px ${fontInter}, sans-serif`;
-        ctx.fillStyle = 'rgba(0,0,0,0.22)';
-        ctx.textAlign = 'right';
-        ctx.fillText('communitree.in', width - 20 * scale, h - 16 * scale);
-
-        // 5. Org logo overlay
+        // 4. Org logo overlay
         if (orgLogoUrl) {
           try {
             const logo = await loadImage(orgLogoUrl);
@@ -269,16 +261,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         ctx.fillText(userName, nameX, nameY, nameMaxW);
       }
 
-      // 4. Subtle watermark
-      const fontInter = getComputedStyle(document.documentElement)
-        .getPropertyValue('--font-inter') || 'Inter';
-      ctx.font      = `500 ${15 * scale}px ${fontInter}, sans-serif`;
-      ctx.fillStyle = 'rgba(0,0,0,0.25)';
-      ctx.textAlign = 'right';
-      ctx.shadowBlur = 0;
-      ctx.fillText('communitree.in', width - 20 * scale, h - 16 * scale);
-
-      // 5. Org logo overlay
+      // 4. Org logo overlay
       if (orgLogoUrl) {
         try {
           const logo = await loadImage(orgLogoUrl);
