@@ -3,13 +3,13 @@ import { useState, useRef } from 'react';
 import { PledgePosterCanvas } from '@/components/PledgePosterCanvas';
 
 const PRESET_POSTERS = [
-  { label: 'Water Pledge', url: '/images/pledges/waterp.png' },
+  { label: 'Water Pledge', url: '/images/pledges/rain water.png' },
 ];
 
 export default function WaterPledgePreview() {
   const [name, setName] = useState('Gowdaa, Shashank MS');
   const [photoUrl, setPhotoUrl] = useState<string | null>('/images/test-face.jpg');
-  const [bgUrl, setBgUrl] = useState<string>('/images/pledges/waterp.png');
+  const [bgUrl, setBgUrl] = useState<string>('/images/pledges/rain water.png');
   const [bgLabel, setBgLabel] = useState<string>('Water Pledge');
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -23,7 +23,7 @@ export default function WaterPledgePreview() {
   const [dropH, setDropH] = useState(517);
 
   // Name tuning — aligned with title column (left ~52%, right ~80%)
-  const [nameX, setNameX] = useState(562);
+  const [nameX, setNameX] = useState(566);
   const [nameY, setNameY] = useState(519);
   const [nameFontSize, setNameFontSize] = useState(68);
   const [letterSpacing, setLetterSpacing] = useState(4);

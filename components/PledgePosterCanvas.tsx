@@ -138,17 +138,10 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           // Name aligned with title column: left edge ~52%, right edge ~80% of width
           const nameX    = tuning?.nameX ?? (0.52 * width + 4 * scale);
           const nameY    = tuning?.nameY ?? (0.34 * h);
-          const nameMaxW = (0.80 * width) - nameX;
+          const nameMaxW = (0.92 * width) - nameX;
 
-          // Scale font size down by 2 (base units) for each character beyond 14
-          // so longer names shrink gracefully instead of being compressed
           const displayName = userName.toUpperCase();
-          const nameLen = displayName.length;
-          const fsBase = 65;
-          const reduction = nameLen > 14 ? (nameLen - 14) * 2 : 0;
-          let fs = tuning?.nameFontSize
-            ? tuning.nameFontSize
-            : Math.max(30, fsBase - reduction) * (width / 794);
+          const fsMax = tuning?.nameFontSize ?? (65 * (width / 794));
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
@@ -156,15 +149,18 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           ctx.textBaseline = 'middle';
           ctx.fillStyle    = '#00063d';
 
+          // Set letter spacing first so measureText accounts for it
           const letterSpacingPx = (tuning?.letterSpacing ?? 4) * scale;
           if ('letterSpacing' in ctx) {
             (ctx as any).letterSpacing = `${letterSpacingPx}px`;
           }
 
-          // Measure and shrink further if text still overflows the content boundary
-          ctx.font = `700 ${fs}px "${fontName}", sans-serif`;
-          while (ctx.measureText(displayName).width > nameMaxW && fs > 20 * scale) {
-            fs -= 2 * scale;
+          // Measure at max size, then scale down proportionally to fit
+          ctx.font = `700 ${fsMax}px "${fontName}", sans-serif`;
+          const measured = ctx.measureText(displayName).width;
+          let fs = fsMax;
+          if (measured > nameMaxW) {
+            fs = Math.max(20 * scale, fsMax * (nameMaxW / measured));
             ctx.font = `700 ${fs}px "${fontName}", sans-serif`;
           }
 
