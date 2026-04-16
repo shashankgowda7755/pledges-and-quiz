@@ -24,13 +24,11 @@ export default async function Home() {
     take: 3
   });
 
-  const [totalPledges, totalOrgs, impactResult] = await Promise.all([
+  const [totalPledges, totalOrgs, totalQuizAttempts] = await Promise.all([
     prisma.submission.count(),
     prisma.organization.count({ where: { isActive: true } }),
-    prisma.pledge.findMany({ include: { _count: { select: { submissions: true } } } })
+    prisma.quizAttempt.count(),
   ]);
-  
-  const totalImpact = impactResult.reduce((acc, p) => acc + (p._count.submissions * p.impactPerUnit), 0);
 
   return (
     <>
@@ -88,8 +86,8 @@ export default async function Home() {
                <div className="text-gray-400 font-medium uppercase tracking-widest text-sm">Organizations</div>
             </div>
             <div className="pt-8 md:pt-0">
-               <div className="text-5xl font-ibm-mono font-bold text-[#00d9ff] mb-2"><CountUpClient end={Math.round(totalImpact)} /></div>
-               <div className="text-gray-400 font-medium uppercase tracking-widest text-sm">Impact Created</div>
+               <div className="text-5xl font-ibm-mono font-bold text-[#00d9ff] mb-2"><CountUpClient end={totalQuizAttempts} /></div>
+               <div className="text-gray-400 font-medium uppercase tracking-widest text-sm">Quiz Attempts</div>
             </div>
           </div>
         </section>

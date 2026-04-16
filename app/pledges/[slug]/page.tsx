@@ -57,9 +57,6 @@ export default async function PledgeLandingPage(context: { params: Promise<{ slu
           </p>
           
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-12">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Our impact, together.</h3>
-            <p className="text-gray-600 mb-6 font-medium">Each pledge equals <strong className="text-teal-600 font-bold text-lg">{pledge.impactPerUnit} {pledge.impactMetric.replace(/_/g, ' ')}</strong>.</p>
-            
             <div className="flex items-center justify-center gap-3 text-gray-800 font-bold text-lg bg-gray-50 py-5 rounded-xl border border-gray-100">
               <span className="text-teal-500 text-3xl">👥</span>
               <span>{pledge._count.submissions.toLocaleString()} people have already pledged</span>

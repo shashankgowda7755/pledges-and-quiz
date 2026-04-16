@@ -38,7 +38,6 @@ export default function FullWaterPledgePreview() {
         <span className="text-xs font-bold text-orange-400 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full">Preview Mode</span>
       </header>
       <div className="flex-1">
-        {/* @ts-expect-error mock data */}
         <PledgeFlow pledge={WATER_PLEDGE} />
       </div>
     </div>

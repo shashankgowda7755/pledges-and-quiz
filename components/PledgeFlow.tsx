@@ -12,7 +12,7 @@ type PledgeWithCommitments = Pledge & { commitments: PledgeCommitment[] };
 type PledgeStep = 'details' | 'preview' | 'commitments' | 'success';
 
 function getPledgeLayout(slug: string): string {
-  if (slug === 'water-pledge') return 'water';
+  if (slug.startsWith('water-')) return 'water';
   if (['house-sparrow', 'sustainable-101'].includes(slug)) return 'sparrow';
   if (slug === 'wooden-earbuds') return 'earbuds';
   return 'default';
