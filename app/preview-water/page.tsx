@@ -26,6 +26,7 @@ export default function WaterPledgePreview() {
   const [nameX, setNameX] = useState(719);
   const [nameY, setNameY] = useState(498);
   const [nameFontSize, setNameFontSize] = useState(68);
+  const [letterSpacing, setLetterSpacing] = useState(4);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,7 +59,7 @@ export default function WaterPledgePreview() {
     }, 'image/png');
   };
 
-  const tuning = { dropX, dropY, dropW, dropH, nameX, nameY, nameFontSize };
+  const tuning = { dropX, dropY, dropW, dropH, nameX, nameY, nameFontSize, letterSpacing };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col lg:flex-row gap-0">
@@ -143,6 +144,7 @@ export default function WaterPledgePreview() {
           { label: 'Name X (left edge)', val: nameX, set: setNameX, min: 400, max: 1080 },
           { label: 'Name Y (vertical)', val: nameY, set: setNameY, min: 200, max: 900 },
           { label: 'Font Size (px)', val: nameFontSize, set: setNameFontSize, min: 20, max: 100 },
+          { label: 'Letter Spacing (px)', val: letterSpacing, set: setLetterSpacing, min: 0, max: 30 },
         ].map(({ label, val, set, min, max }) => (
           <div key={label} className="mb-4">
             <div className="flex justify-between items-center mb-1">
@@ -166,6 +168,7 @@ export default function WaterPledgePreview() {
           <p>nameX: {nameX}</p>
           <p>nameY: {nameY}</p>
           <p>fontSize: {nameFontSize}</p>
+          <p>letterSpacing: {letterSpacing}</p>
         </div>
 
         <button onClick={handleDownload}

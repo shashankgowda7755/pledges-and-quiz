@@ -9,6 +9,7 @@ interface TuningParams {
   nameX?: number;
   nameY?: number;
   nameFontSize?: number;
+  letterSpacing?: number;
 }
 
 interface Props {
@@ -71,15 +72,13 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           try {
             const photo = await loadImage(userPhotoUrl);
 
-            // User provided coordinates (based on 794x1123 A4 canvas)
+            // Coordinates based on 794x1123 A4 canvas
             const baseW = 794;
             const baseH = 1123;
-            
-            // Scaled coordinates
-            const dropX  = 228 * (width / baseW);
-            const dropY  = 467 * (h / baseH);
-            const dropW  = 333 * (width / baseW);
-            const dropH  = 524 * (h / baseH);
+            const dropX  = (tuning?.dropX ?? 230 * (width / baseW));
+            const dropY  = (tuning?.dropY ?? 475 * (h / baseH));
+            const dropW  = (tuning?.dropW ?? 326 * (width / baseW));
+            const dropH  = (tuning?.dropH ?? 506 * (h / baseH));
             
             const cx     = dropX + dropW / 2;
             const r      = dropW / 2;     // radius of the circular bottom
@@ -136,33 +135,29 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             } catch { /* fallback gracefully */ }
           }
 
-          // User provided coordinates (based on 794x1123 A4 canvas)
-          const baseW = 794;
-          const baseH = 1123;
-          
-          const nameX    = 696 * (width / baseW);
-          const nameY    = 490 * (h / baseH);
-          const nameMaxW = width - (40 * (width / baseW)); // Use maximum width appropriately
+          // User provided Canva coordinates: X=13.63cm, Y=9.18cm, W=5.94cm, H=1.78cm on A4 (21x29.7cm)
+          const nameX    = tuning?.nameX ?? ((13.63 / 21.0) * width);
+          const nameY    = tuning?.nameY ?? (((9.18 + 1.78 / 2) / 29.7) * h);
+          const nameMaxW = width - nameX - (20 * scale); // 20px padding from right edge
 
           // User specified font size
           const fsBase = 69;
-          const fs = fsBase * (width / baseW);
+          const fs = tuning?.nameFontSize ?? (fsBase * (width / 794));
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
-          ctx.textAlign    = 'right'; // Image shows HAFIZ KHAN right aligned
+          ctx.textAlign    = 'left'; // X=13.63cm corresponds to the left boundary of text in Canva
           ctx.textBaseline = 'middle';
           ctx.font         = `700 ${fs}px "${fontName}", sans-serif`;
-          ctx.fillStyle    = '#00063d'; // Exact color requested
-          
-          // Appling letter-spacing trick for text rendering
+          ctx.fillStyle    = '#00063d';
+
+          const letterSpacingPx = (tuning?.letterSpacing ?? 4) * scale;
           if ('letterSpacing' in ctx) {
-            (ctx as any).letterSpacing = `${8 * (width / baseW)}px`; // Spacing with alphabets
+            (ctx as any).letterSpacing = `${letterSpacingPx}px`;
           }
 
           ctx.fillText(userName.toUpperCase(), nameX, nameY, nameMaxW);
-          
-          // Resetting letter-spacing
+
           if ('letterSpacing' in ctx) {
             (ctx as any).letterSpacing = '0px';
           }
@@ -175,6 +170,24 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         ctx.fillStyle = 'rgba(0,0,0,0.22)';
         ctx.textAlign = 'right';
         ctx.fillText('communitree.in', width - 20 * scale, h - 16 * scale);
+
+        // 5. Org logo overlay
+        if (orgLogoUrl) {
+          try {
+            const logo = await loadImage(orgLogoUrl);
+            let lx = 200 * scale, ly = h - (250 * scale), lw = 150 * scale; // Default bottom-leftish
+            if (logoPosition) {
+              try {
+                const pos = JSON.parse(logoPosition);
+                if (pos.x !== undefined) lx = pos.x * scale;
+                if (pos.y !== undefined) ly = pos.y * scale;
+                if (pos.w !== undefined) lw = pos.w * scale;
+              } catch { /* use defaults */ }
+            }
+            const lh = (logo.height / logo.width) * lw;
+            ctx.drawImage(logo, lx, ly, lw, lh);
+          } catch { /* skip if logo fails */ }
+        }
 
         return; // done with water layout
       }
