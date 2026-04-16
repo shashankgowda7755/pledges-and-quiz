@@ -25,7 +25,7 @@ export function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-200 py-16 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           <div className="col-span-1 md:col-span-2">
             <h3 className="font-montserrat font-bold text-xl text-gray-900 mb-4">Stay updated on next month&apos;s special days.</h3>
             {status === 'done' ? (
@@ -58,14 +58,6 @@ export function Footer() {
               <li><Link href="/privacy" className="text-gray-600 hover:text-gray-900">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-gray-600 hover:text-gray-900">Terms</Link></li>
               <li><a href="mailto:hello@pledgemarks.com" className="text-gray-600 hover:text-gray-900">hello@pledgemarks.com</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Social</h4>
-            <ul className="space-y-3">
-              <li><a href="https://instagram.com/pledgemarks" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Instagram</a></li>
-              <li><a href="#" className="text-gray-600 hover:text-gray-900">LinkedIn</a></li>
-              <li><a href="https://twitter.com/pledgemarks" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-900">Twitter/X</a></li>
             </ul>
           </div>
         </div>
