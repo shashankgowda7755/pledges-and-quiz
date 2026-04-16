@@ -72,13 +72,13 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           try {
             const photo = await loadImage(userPhotoUrl);
 
-            // Coordinates based on 794x1123 A4 canvas
+            // Coordinates based on 794x1123 A4 canvas — drop below tap (~36% of width)
             const baseW = 794;
             const baseH = 1123;
-            const dropX  = (tuning?.dropX ?? 230 * (width / baseW));
-            const dropY  = (tuning?.dropY ?? 475 * (h / baseH));
-            const dropW  = (tuning?.dropW ?? 326 * (width / baseW));
-            const dropH  = (tuning?.dropH ?? 506 * (h / baseH));
+            const dropX  = (tuning?.dropX ?? 155 * (width / baseW));
+            const dropY  = (tuning?.dropY ?? 340 * (h / baseH));
+            const dropW  = (tuning?.dropW ?? 260 * (width / baseW));
+            const dropH  = (tuning?.dropH ?? 380 * (h / baseH));
             
             const cx     = dropX + dropW / 2;
             const r      = dropW / 2;     // radius of the circular bottom
@@ -135,20 +135,25 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             } catch { /* fallback gracefully */ }
           }
 
-          // User provided Canva coordinates: X=13.63cm, Y=9.18cm, W=5.94cm, H=1.78cm on A4 (21x29.7cm)
-          const nameX    = tuning?.nameX ?? ((13.63 / 21.0) * width);
-          const nameY    = tuning?.nameY ?? (((9.18 + 1.78 / 2) / 29.7) * h);
-          const nameMaxW = width - nameX - (20 * scale); // 20px padding from right edge
+          // Name aligned with title column: left edge ~52%, right edge ~80% of width
+          const nameX    = tuning?.nameX ?? (0.52 * width + 2 * scale);
+          const nameY    = tuning?.nameY ?? (0.34 * h);
+          const nameMaxW = (0.80 * width) - nameX;
 
-          // User specified font size
-          const fsBase = 69;
-          const fs = tuning?.nameFontSize ?? (fsBase * (width / 794));
+          // Scale font size down by 2 (base units) for each character beyond 14
+          // so longer names shrink gracefully instead of being compressed
+          const displayName = userName.toUpperCase();
+          const nameLen = displayName.length;
+          const fsBase = 65;
+          const reduction = nameLen > 14 ? (nameLen - 14) * 2 : 0;
+          let fs = tuning?.nameFontSize
+            ? tuning.nameFontSize
+            : Math.max(30, fsBase - reduction) * (width / 794);
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
-          ctx.textAlign    = 'left'; // X=13.63cm corresponds to the left boundary of text in Canva
+          ctx.textAlign    = 'left';
           ctx.textBaseline = 'middle';
-          ctx.font         = `700 ${fs}px "${fontName}", sans-serif`;
           ctx.fillStyle    = '#00063d';
 
           const letterSpacingPx = (tuning?.letterSpacing ?? 4) * scale;
@@ -156,7 +161,14 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             (ctx as any).letterSpacing = `${letterSpacingPx}px`;
           }
 
-          ctx.fillText(userName.toUpperCase(), nameX, nameY, nameMaxW);
+          // Measure and shrink further if text still overflows the content boundary
+          ctx.font = `700 ${fs}px "${fontName}", sans-serif`;
+          while (ctx.measureText(displayName).width > nameMaxW && fs > 20 * scale) {
+            fs -= 2 * scale;
+            ctx.font = `700 ${fs}px "${fontName}", sans-serif`;
+          }
+
+          ctx.fillText(displayName, nameX, nameY);
 
           if ('letterSpacing' in ctx) {
             (ctx as any).letterSpacing = '0px';

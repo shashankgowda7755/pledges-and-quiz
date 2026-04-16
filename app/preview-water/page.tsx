@@ -16,15 +16,15 @@ export default function WaterPledgePreview() {
   const posterRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Drop tuning (in 1080px canvas units)
-  const [dropX, setDropX] = useState(221);
-  const [dropY, setDropY] = useState(386);
-  const [dropW, setDropW] = useState(358);
-  const [dropH, setDropH] = useState(555);
+  // Drop tuning (in 1080px canvas units) — below tap (~36% of width)
+  const [dropX, setDropX] = useState(211);
+  const [dropY, setDropY] = useState(462);
+  const [dropW, setDropW] = useState(354);
+  const [dropH, setDropH] = useState(517);
 
-  // Name tuning
-  const [nameX, setNameX] = useState(719);
-  const [nameY, setNameY] = useState(498);
+  // Name tuning — aligned with title column (left ~52%, right ~80%)
+  const [nameX, setNameX] = useState(562);
+  const [nameY, setNameY] = useState(519);
   const [nameFontSize, setNameFontSize] = useState(68);
   const [letterSpacing, setLetterSpacing] = useState(4);
 
