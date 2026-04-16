@@ -95,25 +95,36 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           } catch { /* skip photo */ }
         }
 
-        // 3. Name — exact Canva position: X=13.81cm Y=8.95cm W=5.94cm H=1.78cm
-        //    on 21×29.7cm canvas → 1080×1350px. Font: Big Shoulders Display 42.4pt
+        // 3. Name — Big Shoulders Display Bold, loaded via FontFace API
         if (userName) {
-          const fontMontserrat = getComputedStyle(document.documentElement)
-            .getPropertyValue('--font-montserrat').trim() || 'Montserrat';
+          const fontName = 'Big Shoulders Display';
+          const alreadyLoaded = [...document.fonts].some(f => f.family === fontName && f.status === 'loaded');
+          if (!alreadyLoaded) {
+            try {
+              const font = new FontFace(
+                fontName,
+                'url(https://fonts.gstatic.com/s/bigshouldersdisplay/v21/fC1MPZJEZG-e9gHhdI4-NBbfd2ys3SjJCx12wPgf9g-_3F0YdY86JF46SRP4yZQ.woff2)',
+                { weight: '700', style: 'normal' }
+              );
+              const loaded = await font.load();
+              document.fonts.add(loaded);
+            } catch { /* fallback gracefully */ }
+          }
 
-          // Canva → 1080×1350 conversion (final version)
-          // Text box: X=13.97cm Y=10.04cm W=5.94cm H=1.78cm on 21×29.7cm canvas
+          // Canva position: X=13.97cm Y=10.04cm W=5.94cm H=1.78cm on 21×29.7cm → 1080×1350px
           const nameX    = Math.round((13.97 / 21) * 1080) * scale;
           const nameY    = Math.round(((10.04 + 1.78 / 2) / 29.7) * 1350) * scale;
           const nameMaxW = Math.round((5.94 / 21) * 1080) * scale;
-          // 42.4pt on 842pt-tall → 68px on 1350px
-          const fs       = 68 * scale;
+
+          // Dynamic size: shrink for long names
+          const len = userName.trim().length;
+          const fs  = (len > 20 ? 36 : len > 15 ? 46 : len > 10 ? 56 : 68) * scale;
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
           ctx.textAlign    = 'left';
           ctx.textBaseline = 'middle';
-          ctx.font         = `900 ${fs}px ${fontMontserrat}, sans-serif`;
+          ctx.font         = `700 ${fs}px "${fontName}", sans-serif`;
           ctx.fillStyle    = '#0a0a0a';
           ctx.fillText(userName.toUpperCase(), nameX, nameY, nameMaxW);
         }

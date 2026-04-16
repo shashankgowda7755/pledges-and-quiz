@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { PledgePosterCanvas } from '@/components/PledgePosterCanvas';
 
 export default function WaterPledgePreview() {
-  const [name, setName] = useState('Hafiz Khan');
+  const [name, setName] = useState('Gowdaa, Shashank MS');
   const [photoUrl, setPhotoUrl] = useState<string | null>('/images/test-face.jpg');
   const fileRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
