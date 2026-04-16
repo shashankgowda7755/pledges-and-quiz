@@ -1,6 +1,16 @@
 "use client";
 import React, { useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 
+interface TuningParams {
+  dropX?: number;
+  dropY?: number;
+  dropW?: number;
+  dropH?: number;
+  nameX?: number;
+  nameY?: number;
+  nameFontSize?: number;
+}
+
 interface Props {
   userName:      string;
   bgImageUrl:    string;
@@ -13,10 +23,11 @@ interface Props {
   logoPosition?: string | null;
   isQuiz?:       boolean;
   layout?:       string;
+  tuning?:       TuningParams;
 }
 
 export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
-  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, orgLogoUrl, logoPosition, layout }, ref) => {
+  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, orgLogoUrl, logoPosition, layout, tuning }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
@@ -25,7 +36,9 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       if (!canvas) return;
 
       const scale = width / 1080;
-      const h     = Math.round(1350 * scale);
+      // Use standard A4 aspect ratio (1:sqrt(2)) for water pledge
+      const a4Ratio = 1123 / 794; /* approx 1.41435 */
+      const h     = layout === 'water' ? Math.round(width * a4Ratio) : Math.round(1350 * scale);
       canvas.width  = width;
       canvas.height = h;
       const ctx = canvas.getContext('2d');
@@ -35,10 +48,18 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
 
       // ── WATER PLEDGE LAYOUT ──────────────────────────────────────────────
       if (layout === 'water') {
-        // 1. Background poster (full bleed)
+        // 1. Background poster — cover-fit so any uploaded poster fills A4 without distortion
         try {
           const bg = await loadImage(bgImageUrl);
-          ctx.drawImage(bg, 0, 0, width, h);
+          const bgRatio = bg.width / bg.height;
+          const cvRatio = width / h;
+          let bx = 0, by = 0, bw = width, bh = h;
+          if (bgRatio > cvRatio) {
+            bh = h; bw = h * bgRatio; bx = (width - bw) / 2;
+          } else {
+            bw = width; bh = width / bgRatio; by = 0;
+          }
+          ctx.drawImage(bg, bx, by, bw, bh);
         } catch (err) {
           console.error('[PosterCanvas] Failed to load background:', bgImageUrl, err);
           ctx.fillStyle = '#dbeafe';
@@ -50,12 +71,16 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           try {
             const photo = await loadImage(userPhotoUrl);
 
-            // Water drop bounding box — exact from Canva advanced panel (final version):
-            // X:4.3cm Y:10.07cm W:6.96cm H:10.65cm on 21×29.7cm canvas → 1080×1350px
-            const dropX  = Math.round((4.3  / 21)   * 1080) * scale;  // 221
-            const dropY  = Math.round((8.5  / 29.7) * 1350) * scale;   // shifted up to include tip
-            const dropW  = Math.round((6.96  / 21)   * 1080) * scale;  // 358
-            const dropH  = Math.round((12.2 / 29.7) * 1350) * scale;   // taller to cover full drop
+            // User provided coordinates (based on 794x1123 A4 canvas)
+            const baseW = 794;
+            const baseH = 1123;
+            
+            // Scaled coordinates
+            const dropX  = 228 * (width / baseW);
+            const dropY  = 467 * (h / baseH);
+            const dropW  = 333 * (width / baseW);
+            const dropH  = 524 * (h / baseH);
+            
             const cx     = dropX + dropW / 2;
             const r      = dropW / 2;     // radius of the circular bottom
             const circCY = dropY + dropH - r; // centre-Y of the bottom circle
@@ -111,22 +136,36 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             } catch { /* fallback gracefully */ }
           }
 
-          // Canva position: X=13.97cm Y=10.04cm W=5.94cm H=1.78cm on 21×29.7cm → 1080×1350px
-          const nameX    = Math.round((13.97 / 21) * 1080) * scale;
-          const nameY    = Math.round(((10.04 + 1.78 / 2) / 29.7) * 1350) * scale;
-          const nameMaxW = Math.round((5.94 / 21) * 1080) * scale;
+          // User provided coordinates (based on 794x1123 A4 canvas)
+          const baseW = 794;
+          const baseH = 1123;
+          
+          const nameX    = 696 * (width / baseW);
+          const nameY    = 490 * (h / baseH);
+          const nameMaxW = width - (40 * (width / baseW)); // Use maximum width appropriately
 
-          // Dynamic size: shrink for long names
-          const len = userName.trim().length;
-          const fs  = (len > 20 ? 36 : len > 15 ? 46 : len > 10 ? 56 : 68) * scale;
+          // User specified font size
+          const fsBase = 69;
+          const fs = fsBase * (width / baseW);
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
-          ctx.textAlign    = 'left';
+          ctx.textAlign    = 'right'; // Image shows HAFIZ KHAN right aligned
           ctx.textBaseline = 'middle';
           ctx.font         = `700 ${fs}px "${fontName}", sans-serif`;
-          ctx.fillStyle    = '#0a0a0a';
+          ctx.fillStyle    = '#00063d'; // Exact color requested
+          
+          // Appling letter-spacing trick for text rendering
+          if ('letterSpacing' in ctx) {
+            (ctx as any).letterSpacing = `${8 * (width / baseW)}px`; // Spacing with alphabets
+          }
+
           ctx.fillText(userName.toUpperCase(), nameX, nameY, nameMaxW);
+          
+          // Resetting letter-spacing
+          if ('letterSpacing' in ctx) {
+            (ctx as any).letterSpacing = '0px';
+          }
         }
 
         // 4. Watermark
@@ -236,7 +275,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         } catch { /* skip if logo fails */ }
       }
 
-    }, [userName, bgImageUrl, userPhotoUrl, width, orgLogoUrl, logoPosition, layout]);
+    }, [userName, bgImageUrl, userPhotoUrl, width, orgLogoUrl, logoPosition, layout, tuning]);
 
     useEffect(() => { draw(); }, [draw]);
 

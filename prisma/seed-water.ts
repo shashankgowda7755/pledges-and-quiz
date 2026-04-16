@@ -25,7 +25,7 @@ async function main() {
     update: {
       name: 'My Water Pledge',
       description: 'Small action, lasting impact. Commit to valuing every drop of water for your community and every life that depends on it.',
-      bgImageUrl: '/images/pledges/water-pledge-poster.png',
+      bgImageUrl: '/images/pledges/waterp.png',
       eventDate: new Date('2026-04-17T00:00:00.000Z'),
       orgId: org.id,
     },
@@ -34,7 +34,7 @@ async function main() {
       name: 'My Water Pledge',
       description: 'Small action, lasting impact. Commit to valuing every drop of water for your community and every life that depends on it.',
       category: 'environment',
-      bgImageUrl: '/images/pledges/water-pledge-poster.png',
+      bgImageUrl: '/images/pledges/waterp.png',
       impactMetric: 'litres_saved',
       impactPerUnit: 50,
       isActive: true,

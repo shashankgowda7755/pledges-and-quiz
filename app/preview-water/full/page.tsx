@@ -8,7 +8,7 @@ const WATER_PLEDGE = {
   name: 'My Water Pledge',
   description: 'Small action, lasting impact. Commit to valuing every drop of water.',
   category: 'environment',
-  bgImageUrl: '/images/pledges/water-pledge-poster.png',
+  bgImageUrl: '/images/pledges/waterp.png',
   impactMetric: 'litres_saved',
   impactPerUnit: 50,
   isActive: true,
