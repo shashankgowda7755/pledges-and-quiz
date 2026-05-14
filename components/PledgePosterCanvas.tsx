@@ -10,6 +10,14 @@ interface TuningParams {
   nameY?: number;
   nameFontSize?: number;
   letterSpacing?: number;
+  // Jungle layout (coords in source image space, base 2480x3508)
+  rectX?: number;
+  rectY?: number;
+  rectW?: number;
+  rectH?: number;
+  rectAngleDeg?: number;
+  nameOffsetY?: number;
+  nameColor?: string;
 }
 
 interface Props {
@@ -205,6 +213,99 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         }
 
         return; // done with water layout
+      }
+
+      // ── JUNGLE LAYOUT (Hanon Kids Summer Camp 2026) ─────────────────────
+      if (layout === 'jungle') {
+        // 1. Background poster (full bleed, A4)
+        try {
+          const bg = await loadImage(bgImageUrl);
+          ctx.drawImage(bg, 0, 0, width, h);
+        } catch (err) {
+          console.error('[PosterCanvas] Failed to load background:', bgImageUrl, err);
+          ctx.fillStyle = '#e8f5d8';
+          ctx.fillRect(0, 0, width, h);
+        }
+
+        // Coordinates referenced to the source image (2480 × 3508)
+        const baseW = 2480;
+        const baseH = 3508;
+
+        // White photo rectangle on the right — defaults tuned against the source image
+        const rxSrc = tuning?.rectX ?? 1465;
+        const rySrc = tuning?.rectY ?? 1085;
+        const rwSrc = tuning?.rectW ?? 850;
+        const rhSrc = tuning?.rectH ?? 1010;
+        const rx    = (rxSrc / baseW) * width;
+        const ry    = (rySrc / baseH) * h;
+        const rw    = (rwSrc / baseW) * width;
+        const rh    = (rhSrc / baseH) * h;
+        const angle = (tuning?.rectAngleDeg ?? -13.5) * (Math.PI / 180);
+
+        // 2. Photo — rotated rectangle clip, cover-fill
+        if (userPhotoUrl) {
+          try {
+            const photo = await loadImage(userPhotoUrl);
+            ctx.save();
+            ctx.translate(rx + rw / 2, ry + rh / 2);
+            ctx.rotate(angle);
+            ctx.translate(-(rx + rw / 2), -(ry + rh / 2));
+
+            ctx.beginPath();
+            ctx.rect(rx, ry, rw, rh);
+            ctx.clip();
+
+            const s  = Math.max(rw / photo.width, rh / photo.height);
+            const pw = photo.width  * s;
+            const ph = photo.height * s;
+            ctx.drawImage(photo, rx + (rw - pw) / 2, ry + (rh - ph) / 2, pw, ph);
+            ctx.restore();
+          } catch { /* skip photo */ }
+        }
+
+        // 3. Name — centred under the photo column
+        if (userName) {
+          const fontMontserrat = getComputedStyle(document.documentElement)
+            .getPropertyValue('--font-montserrat') || 'Montserrat';
+
+          const nameCX     = rx + rw / 2;
+          const nameOffset = tuning?.nameOffsetY ?? 330;
+          const nameY      = ry + rh + (nameOffset / baseH) * h;
+          const nameMaxW   = rw + (120 / baseW) * width;
+
+          const maxLen = Math.max(1, userName.length);
+          const defaultFs = maxLen > 18 ? 56 : maxLen > 12 ? 64 : 72;
+          const fs = (tuning?.nameFontSize ?? defaultFs) * (width / 1080);
+
+          ctx.shadowColor  = 'transparent';
+          ctx.shadowBlur   = 0;
+          ctx.textAlign    = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font         = `700 ${fs}px ${fontMontserrat}, sans-serif`;
+          ctx.fillStyle    = tuning?.nameColor ?? '#1a4480';
+
+          ctx.fillText(userName, nameCX, nameY, nameMaxW);
+        }
+
+        // 4. Org logo overlay (optional)
+        if (orgLogoUrl) {
+          try {
+            const logo = await loadImage(orgLogoUrl);
+            let lx = 200 * scale, ly = 1100 * scale, lw = 150 * scale;
+            if (logoPosition) {
+              try {
+                const pos = JSON.parse(logoPosition);
+                if (pos.x !== undefined) lx = pos.x * scale;
+                if (pos.y !== undefined) ly = pos.y * scale;
+                if (pos.w !== undefined) lw = pos.w * scale;
+              } catch { /* defaults */ }
+            }
+            const lh = (logo.height / logo.width) * lw;
+            ctx.drawImage(logo, lx, ly, lw, lh);
+          } catch { /* skip logo */ }
+        }
+
+        return; // done with jungle layout
       }
 
       // ── DEFAULT / SPARROW LAYOUT ─────────────────────────────────────────

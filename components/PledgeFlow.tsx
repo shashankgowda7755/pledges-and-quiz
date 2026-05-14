@@ -15,6 +15,7 @@ function getPledgeLayout(slug: string): string {
   if (slug.startsWith('water-')) return 'water';
   if (slug === 'house-sparrow') return 'sparrow';
   if (slug === 'wooden-earbuds') return 'earbuds';
+  if (slug === 'jungle-adventure-2026') return 'jungle';
   return 'default';
 }
 
@@ -31,6 +32,8 @@ export function PledgeFlow({ pledge }: { pledge: PledgeWithCommitments }) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true });
 
+  const hasCommitments = pledge.commitments.length > 0;
+
   const goToStep = (step: PledgeStep) => {
     setIsTransitioning(true);
     setTimeout(() => {
@@ -38,6 +41,25 @@ export function PledgeFlow({ pledge }: { pledge: PledgeWithCommitments }) {
       window.scrollTo(0, 0);
       setTimeout(() => setIsTransitioning(false), 50);
     }, 150);
+  };
+
+  const submitAndContinue = async () => {
+    try {
+      await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pledgeId: pledge.id,
+          userName: userData.fullName,
+          userEmail: userData.email,
+          whatsapp: userData.whatsapp,
+          agreed: userData.agreed,
+        }),
+      });
+    } catch (e) {
+      console.error('[PledgeFlow] direct submit failed', e);
+    }
+    goToStep('success');
   };
 
   return (
@@ -54,20 +76,20 @@ export function PledgeFlow({ pledge }: { pledge: PledgeWithCommitments }) {
         )}
 
         {currentStep === 'preview' && (
-          <PledgePreview 
-            pledge={pledge} 
+          <PledgePreview
+            pledge={pledge}
             userData={userData}
             onBack={() => goToStep('details')}
-            onConfirm={() => goToStep('commitments')} 
+            onConfirm={() => hasCommitments ? goToStep('commitments') : submitAndContinue()}
           />
         )}
 
-        {currentStep === 'commitments' && (
-          <PledgeCommitments 
-            pledge={pledge} 
+        {currentStep === 'commitments' && hasCommitments && (
+          <PledgeCommitments
+            pledge={pledge}
             userData={userData}
             onBack={() => goToStep('preview')}
-            onSuccess={() => goToStep('success')} 
+            onSuccess={() => goToStep('success')}
           />
         )}
 
