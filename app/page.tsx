@@ -11,10 +11,14 @@ export default async function Home() {
     orderBy: { eventDate: 'desc' }
   });
 
-  const livePledge = 
-    pledges.find(p => p.eventDate && new Date(p.eventDate).toDateString() === new Date().toDateString()) || 
-    pledges.find(p => p.isFeatured) || 
-    pledges[0];
+  const isSameDay = (a: Date, b: Date) =>
+    a.getUTCFullYear() === b.getUTCFullYear() &&
+    a.getUTCMonth() === b.getUTCMonth() &&
+    a.getUTCDate() === b.getUTCDate();
+
+  const todayUTC = new Date();
+  const todaysEvent = pledges.find(p => p.eventDate && isSameDay(new Date(p.eventDate), todayUTC));
+  const livePledge = todaysEvent || pledges.find(p => p.isFeatured) || pledges[0];
     
   const upcomingPledges = pledges.filter(p => p.eventDate && new Date(p.eventDate) > new Date()).slice(0, 10);
   const timelessPledges = pledges.filter(p => !p.eventDate).slice(0, 6);
