@@ -7,6 +7,7 @@ import { downloadPoster, sharePoster } from '@/utils/downloadPoster';
 import { Check, Loader2, Camera, ArrowLeft, Edit2, X, RefreshCw } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
+import { downscaleImage } from '@/utils/downscaleImage';
 
 type PledgeWithCommitments = Pledge & { commitments: PledgeCommitment[] };
 type PledgeStep = 'details' | 'preview' | 'commitments' | 'success';
@@ -275,15 +276,21 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
   const galleryRef                  = useRef<HTMLInputElement>(null);
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
   const [showCamera, setShowCamera]   = useState(false);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => setRawImageSrc(event.target?.result as string);
-      reader.readAsDataURL(file);
-    }
     e.target.value = '';
+    if (!file) return;
+    setIsProcessingPhoto(true);
+    try {
+      const dataUrl = await downscaleImage(file);
+      setRawImageSrc(dataUrl);
+    } catch (err) {
+      console.error('[Photo] downscale failed', err);
+    } finally {
+      setIsProcessingPhoto(false);
+    }
   };
 
   const handleCropSave = (croppedImage: string) => {
@@ -300,6 +307,14 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
           onCapture={(src) => { setShowCamera(false); setRawImageSrc(src); }}
           onClose={() => setShowCamera(false)}
         />
+      )}
+      {isProcessingPhoto && !rawImageSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-2xl px-6 py-5 flex items-center gap-3 shadow-xl">
+            <Loader2 className="w-5 h-5 animate-spin text-[#1e1b4b]"/>
+            <span className="font-semibold text-[#1e1b4b]">Preparing photo…</span>
+          </div>
+        </div>
       )}
       {rawImageSrc && (
         <PhotoCropModal
@@ -585,13 +600,20 @@ function EditCertModal({ current, onSave, onClose }: {
   const [showCamera, setShowCamera] = useState(false);
   const galleryRef                  = useRef<HTMLInputElement>(null);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => setRawImg(ev.target?.result as string);
-    reader.readAsDataURL(file);
     e.target.value = '';
+    if (!file) return;
+    setIsProcessingPhoto(true);
+    try {
+      const dataUrl = await downscaleImage(file);
+      setRawImg(dataUrl);
+    } catch (err) {
+      console.error('[Photo] downscale failed', err);
+    } finally {
+      setIsProcessingPhoto(false);
+    }
   };
 
   return (
@@ -601,6 +623,14 @@ function EditCertModal({ current, onSave, onClose }: {
           onCapture={(src) => { setShowCamera(false); setRawImg(src); }}
           onClose={() => setShowCamera(false)}
         />
+      )}
+      {isProcessingPhoto && !rawImageSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-2xl px-6 py-5 flex items-center gap-3 shadow-xl">
+            <Loader2 className="w-5 h-5 animate-spin text-[#1e1b4b]"/>
+            <span className="font-semibold text-[#1e1b4b]">Preparing photo…</span>
+          </div>
+        </div>
       )}
       {rawImageSrc && (
         <PhotoCropModal
