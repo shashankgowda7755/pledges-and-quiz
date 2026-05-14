@@ -17,6 +17,7 @@ interface TuningParams {
   rectH?: number;
   rectAngleDeg?: number;
   nameOffsetY?: number;
+  nameRightX?: number;
   nameColor?: string;
 }
 
@@ -268,10 +269,13 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           const fontMontserrat = getComputedStyle(document.documentElement)
             .getPropertyValue('--font-montserrat') || 'Montserrat';
 
-          const nameCX     = rx + rw / 2;
+          // Right edge of the "Presented for…" paragraph column ≈ x=2290 in source space
+          const rightAnchorSrc = tuning?.nameRightX ?? 2290;
+          const nameRX     = (rightAnchorSrc / baseW) * width;
           const nameOffset = tuning?.nameOffsetY ?? 330;
           const nameY      = ry + rh + (nameOffset / baseH) * h;
-          const nameMaxW   = rw + (120 / baseW) * width;
+          // Allow the name to span from a sensible left margin up to the right anchor
+          const nameMaxW   = nameRX - ((1280 / baseW) * width);
 
           const maxLen = Math.max(1, userName.length);
           const defaultFs = maxLen > 18 ? 56 : maxLen > 12 ? 64 : 72;
@@ -279,12 +283,12 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
-          ctx.textAlign    = 'center';
+          ctx.textAlign    = 'right';
           ctx.textBaseline = 'middle';
           ctx.font         = `700 ${fs}px ${fontMontserrat}, sans-serif`;
           ctx.fillStyle    = tuning?.nameColor ?? '#1a4480';
 
-          ctx.fillText(userName, nameCX, nameY, nameMaxW);
+          ctx.fillText(userName, nameRX, nameY, nameMaxW);
         }
 
         // 4. Org logo overlay (optional)

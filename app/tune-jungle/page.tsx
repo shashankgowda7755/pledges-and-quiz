@@ -19,6 +19,7 @@ export default function TuneJunglePage() {
   const [rectAngleDeg, setRectAngle]  = useState(-13.5);
   const [nameOffsetY, setNameOffsetY] = useState(330);
   const [nameFontSize, setNameFontSize] = useState(72);
+  const [nameRightX, setNameRightX]   = useState(2290);
   const [nameColor, setNameColor]     = useState('#1a4480');
 
   const onPhotoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +30,7 @@ export default function TuneJunglePage() {
     reader.readAsDataURL(file);
   };
 
-  const tuning = { rectX, rectY, rectW, rectH, rectAngleDeg, nameOffsetY, nameFontSize, nameColor };
+  const tuning = { rectX, rectY, rectW, rectH, rectAngleDeg, nameOffsetY, nameFontSize, nameRightX, nameColor };
 
   const copyJson = () => {
     navigator.clipboard.writeText(JSON.stringify(tuning, null, 2));
@@ -41,7 +42,7 @@ export default function TuneJunglePage() {
 
   const reset = () => {
     setRectX(1465); setRectY(1085); setRectW(850); setRectH(1010);
-    setRectAngle(-13.5); setNameOffsetY(330); setNameFontSize(72); setNameColor('#1a4480');
+    setRectAngle(-13.5); setNameOffsetY(330); setNameFontSize(72); setNameRightX(2290); setNameColor('#1a4480');
   };
 
   return (
@@ -86,6 +87,7 @@ export default function TuneJunglePage() {
           <Slider label="Rect H (height)"   value={rectH}        min={100}  max={2000} step={5}   onChange={setRectH} />
           <Slider label="Rotation (deg)"    value={rectAngleDeg} min={-15}  max={15}   step={0.5} onChange={setRectAngle} />
           <Slider label="Name offset Y"     value={nameOffsetY}  min={20}   max={500}  step={5}   onChange={setNameOffsetY} />
+          <Slider label="Name right X"      value={nameRightX}   min={1500} max={2480} step={2}   onChange={setNameRightX} />
           <Slider label="Name font size"    value={nameFontSize} min={20}   max={200}  step={2}   onChange={setNameFontSize} />
 
           <label className="block">
