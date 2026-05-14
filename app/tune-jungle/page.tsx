@@ -19,7 +19,7 @@ export default function TuneJunglePage() {
   const [rectAngleDeg, setRectAngle]  = useState(-13.5);
   const [nameOffsetY, setNameOffsetY] = useState(330);
   const [nameFontSize, setNameFontSize] = useState(72);
-  const [nameRightX, setNameRightX]   = useState(2290);
+  const [nameRightX, setNameRightX]   = useState(2378);
   const [nameColor, setNameColor]     = useState('#1a4480');
 
   const onPhotoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +42,7 @@ export default function TuneJunglePage() {
 
   const reset = () => {
     setRectX(1465); setRectY(1085); setRectW(850); setRectH(1010);
-    setRectAngle(-13.5); setNameOffsetY(330); setNameFontSize(72); setNameRightX(2290); setNameColor('#1a4480');
+    setRectAngle(-13.5); setNameOffsetY(330); setNameFontSize(72); setNameRightX(2378); setNameColor('#1a4480');
   };
 
   return (

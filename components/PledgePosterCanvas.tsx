@@ -269,26 +269,34 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           const fontMontserrat = getComputedStyle(document.documentElement)
             .getPropertyValue('--font-montserrat') || 'Montserrat';
 
-          // Right edge of the "Presented for…" paragraph column ≈ x=2290 in source space
-          const rightAnchorSrc = tuning?.nameRightX ?? 2290;
+          // Right anchor aligns with the right edge of the "Presented for…" paragraph
+          const rightAnchorSrc = tuning?.nameRightX ?? 2378;
           const nameRX     = (rightAnchorSrc / baseW) * width;
           const nameOffset = tuning?.nameOffsetY ?? 330;
           const nameY      = ry + rh + (nameOffset / baseH) * h;
-          // Allow the name to span from a sensible left margin up to the right anchor
+          // Column the name lives in — from a sensible left margin to the right anchor
           const nameMaxW   = nameRX - ((1280 / baseW) * width);
 
-          const maxLen = Math.max(1, userName.length);
+          // Length-based starting font size (custom per name length)
+          const maxLen   = Math.max(1, userName.length);
           const defaultFs = maxLen > 18 ? 56 : maxLen > 12 ? 64 : 72;
-          const fs = (tuning?.nameFontSize ?? defaultFs) * (width / 1080);
+          let fs = (tuning?.nameFontSize ?? defaultFs) * (width / 1080);
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
           ctx.textAlign    = 'right';
           ctx.textBaseline = 'middle';
-          ctx.font         = `700 ${fs}px ${fontMontserrat}, sans-serif`;
           ctx.fillStyle    = tuning?.nameColor ?? '#1a4480';
+          ctx.font         = `700 ${fs}px ${fontMontserrat}, sans-serif`;
 
-          ctx.fillText(userName, nameRX, nameY, nameMaxW);
+          // Measure and shrink to fit the column without horizontal distortion
+          const measured = ctx.measureText(userName).width;
+          if (measured > nameMaxW) {
+            fs = Math.max(18 * scale, fs * (nameMaxW / measured));
+            ctx.font = `700 ${fs}px ${fontMontserrat}, sans-serif`;
+          }
+
+          ctx.fillText(userName, nameRX, nameY);
         }
 
         // 4. Org logo overlay (optional)
