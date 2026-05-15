@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import prisma from '@/lib/prisma';
 import { SharePledgeLink } from '@/components/SharePledgeLink';
+import { isCertificateOnly } from '@/lib/pledgeMode';
 
 export async function generateMetadata(context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
@@ -26,6 +27,9 @@ export default async function PledgeLandingPage(context: { params: Promise<{ slu
   });
 
   if (!pledge) notFound();
+
+  const certOnly = isCertificateOnly(pledge.slug);
+  const ctaLabel = certOnly ? 'Get My Certificate' : 'Take This Pledge';
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -56,15 +60,17 @@ export default async function PledgeLandingPage(context: { params: Promise<{ slu
             {pledge.description}
           </p>
           
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-12">
-            <div className="flex items-center justify-center gap-3 text-gray-800 font-bold text-lg bg-gray-50 py-5 rounded-xl border border-gray-100">
-              <span className="text-teal-500 text-3xl">👥</span>
-              <span>{pledge._count.submissions.toLocaleString()} people have already pledged</span>
+          {!certOnly && (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-12">
+              <div className="flex items-center justify-center gap-3 text-gray-800 font-bold text-lg bg-gray-50 py-5 rounded-xl border border-gray-100">
+                <span className="text-teal-500 text-3xl">👥</span>
+                <span>{pledge._count.submissions.toLocaleString()} people have already pledged</span>
+              </div>
             </div>
-          </div>
-          
+          )}
+
           <Link href={`/pledges/${pledge.slug}/take`} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
-            Take This Pledge
+            {ctaLabel}
           </Link>
           
           <SharePledgeLink title={pledge.name} />

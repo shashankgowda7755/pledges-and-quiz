@@ -3,14 +3,16 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { PledgeFlow } from '@/components/PledgeFlow';
 import prisma from '@/lib/prisma';
+import { isCertificateOnly } from '@/lib/pledgeMode';
 
 export async function generateMetadata(context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
   const pledge = await prisma.pledge.findUnique({ where: { slug } });
   if (!pledge) return {};
-  
+
+  const prefix = isCertificateOnly(pledge.slug) ? 'Get Your Certificate' : 'Take Pledge';
   return {
-    title: `Take Pledge: ${pledge.name} | Communitree`,
+    title: `${prefix}: ${pledge.name} | Communitree`,
   };
 }
 

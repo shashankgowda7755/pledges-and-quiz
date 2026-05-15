@@ -8,6 +8,7 @@ import { Check, Loader2, Camera, ArrowLeft, Edit2, X, RefreshCw } from 'lucide-r
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
 import { downscaleImage } from '@/utils/downscaleImage';
+import { isCertificateOnly } from '@/lib/pledgeMode';
 
 type PledgeWithCommitments = Pledge & { commitments: PledgeCommitment[] };
 type PledgeStep = 'details' | 'preview' | 'commitments' | 'success';
@@ -715,6 +716,11 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
   };
 
   const layout = getPledgeLayout(pledge.slug);
+  const certOnly = isCertificateOnly(pledge.slug);
+  const heading  = certOnly ? 'Your Certificate is Ready!' : 'Pledge Taken!';
+  const subtitle = certOnly
+    ? `Thank you for joining ${pledge.name} — here's your certificate.`
+    : 'You have successfully pledged to honor the impact.';
 
   return (
     <>
@@ -730,8 +736,10 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
         <div className="w-16 h-16 bg-[#dcfce7] text-[#22c55e] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
           <Check className="w-8 h-8" strokeWidth={3} />
         </div>
-        <h2 className="text-3xl font-extrabold text-[#111827] mb-2 tracking-tight">Pledge Taken! <span className="ml-1">🎉</span></h2>
-        <p className="text-gray-500 mb-10">Thank you, <span className="font-bold text-gray-900">{cert.fullName}</span>.<br/>You have successfully pledged to honor the impact.</p>
+        <h2 className="text-3xl font-extrabold text-[#111827] mb-2 tracking-tight">{heading} <span className="ml-1">🎉</span></h2>
+        <p className="text-gray-500 mb-10">
+          Thank you, <span className="font-bold text-gray-900">{cert.fullName}</span>.<br/>{subtitle}
+        </p>
 
         {/* Hidden HD Canvas for Download */}
         <div className="hidden">
