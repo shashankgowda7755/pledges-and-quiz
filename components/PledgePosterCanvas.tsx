@@ -326,10 +326,10 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         try {
           const partnerFont = getComputedStyle(document.documentElement)
             .getPropertyValue('--font-montserrat') || 'Montserrat';
-          const labelYSrc = tuning?.partnerLabelY ?? 3200;
-          const labelFs   = (tuning?.partnerLabelFs ?? 36) * (width / 1080);
-          const logoYSrc  = tuning?.partnerLogoY  ?? 3280;
-          const logoHSrc  = tuning?.partnerLogoH  ?? 180;
+          const labelYSrc = tuning?.partnerLabelY ?? 3255;
+          const labelFs   = (tuning?.partnerLabelFs ?? 21) * (width / 1080);
+          const logoYSrc  = tuning?.partnerLogoY  ?? 3315;
+          const logoHSrc  = tuning?.partnerLogoH  ?? 128;
 
           // Label
           ctx.shadowColor  = 'transparent';

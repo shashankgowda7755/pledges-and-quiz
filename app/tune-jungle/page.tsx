@@ -23,10 +23,10 @@ export default function TuneJunglePage() {
   const [nameColor, setNameColor]     = useState('#1a4480');
 
   // Event Partner branding
-  const [partnerLabelY, setPartnerLabelY]   = useState(3200);
-  const [partnerLabelFs, setPartnerLabelFs] = useState(36);
-  const [partnerLogoY, setPartnerLogoY]     = useState(3280);
-  const [partnerLogoH, setPartnerLogoH]     = useState(180);
+  const [partnerLabelY, setPartnerLabelY]   = useState(3255);
+  const [partnerLabelFs, setPartnerLabelFs] = useState(21);
+  const [partnerLogoY, setPartnerLogoY]     = useState(3315);
+  const [partnerLogoH, setPartnerLogoH]     = useState(128);
 
   const onPhotoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,7 +53,7 @@ export default function TuneJunglePage() {
   const reset = () => {
     setRectX(1465); setRectY(1085); setRectW(850); setRectH(1010);
     setRectAngle(-13.5); setNameOffsetY(330); setNameFontSize(72); setNameRightX(2378); setNameColor('#1a4480');
-    setPartnerLabelY(3200); setPartnerLabelFs(36); setPartnerLogoY(3280); setPartnerLogoH(180);
+    setPartnerLabelY(3255); setPartnerLabelFs(21); setPartnerLogoY(3315); setPartnerLogoH(128);
   };
 
   return (
