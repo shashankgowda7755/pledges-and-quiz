@@ -19,6 +19,11 @@ interface TuningParams {
   nameOffsetY?: number;
   nameRightX?: number;
   nameColor?: string;
+  // Event-partner branding (bottom of jungle certificate)
+  partnerLabelY?: number;
+  partnerLabelFs?: number;
+  partnerLogoY?: number;
+  partnerLogoH?: number;
 }
 
 interface Props {
@@ -315,6 +320,35 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             const lh = (logo.height / logo.width) * lw;
             ctx.drawImage(logo, lx, ly, lw, lh);
           } catch { /* skip logo */ }
+        }
+
+        // 5. "Event Partner" label + EZONE logo at the bottom centre
+        try {
+          const partnerFont = getComputedStyle(document.documentElement)
+            .getPropertyValue('--font-montserrat') || 'Montserrat';
+          const labelYSrc = tuning?.partnerLabelY ?? 3200;
+          const labelFs   = (tuning?.partnerLabelFs ?? 36) * (width / 1080);
+          const logoYSrc  = tuning?.partnerLogoY  ?? 3280;
+          const logoHSrc  = tuning?.partnerLogoH  ?? 180;
+
+          // Label
+          ctx.shadowColor  = 'transparent';
+          ctx.shadowBlur   = 0;
+          ctx.textAlign    = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle    = '#000000';
+          ctx.font         = `700 ${labelFs}px ${partnerFont}, sans-serif`;
+          ctx.fillText('Event Partner', width / 2, (labelYSrc / baseH) * h);
+
+          // EZONE logo
+          const ezone = await loadImage('/images/ezone-logo.png');
+          const logoH = (logoHSrc / baseH) * h;
+          const logoW = (ezone.width / ezone.height) * logoH;
+          const logoX = (width - logoW) / 2;
+          const logoY = (logoYSrc / baseH) * h;
+          ctx.drawImage(ezone, logoX, logoY, logoW, logoH);
+        } catch (err) {
+          console.warn('[Jungle] event partner branding render failed:', err);
         }
 
         return; // done with jungle layout

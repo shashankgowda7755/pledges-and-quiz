@@ -22,6 +22,12 @@ export default function TuneJunglePage() {
   const [nameRightX, setNameRightX]   = useState(2378);
   const [nameColor, setNameColor]     = useState('#1a4480');
 
+  // Event Partner branding
+  const [partnerLabelY, setPartnerLabelY]   = useState(3200);
+  const [partnerLabelFs, setPartnerLabelFs] = useState(36);
+  const [partnerLogoY, setPartnerLogoY]     = useState(3280);
+  const [partnerLogoH, setPartnerLogoH]     = useState(180);
+
   const onPhotoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -30,7 +36,11 @@ export default function TuneJunglePage() {
     reader.readAsDataURL(file);
   };
 
-  const tuning = { rectX, rectY, rectW, rectH, rectAngleDeg, nameOffsetY, nameFontSize, nameRightX, nameColor };
+  const tuning = {
+    rectX, rectY, rectW, rectH, rectAngleDeg,
+    nameOffsetY, nameFontSize, nameRightX, nameColor,
+    partnerLabelY, partnerLabelFs, partnerLogoY, partnerLogoH,
+  };
 
   const copyJson = () => {
     navigator.clipboard.writeText(JSON.stringify(tuning, null, 2));
@@ -43,6 +53,7 @@ export default function TuneJunglePage() {
   const reset = () => {
     setRectX(1465); setRectY(1085); setRectW(850); setRectH(1010);
     setRectAngle(-13.5); setNameOffsetY(330); setNameFontSize(72); setNameRightX(2378); setNameColor('#1a4480');
+    setPartnerLabelY(3200); setPartnerLabelFs(36); setPartnerLogoY(3280); setPartnerLogoH(180);
   };
 
   return (
@@ -89,6 +100,14 @@ export default function TuneJunglePage() {
           <Slider label="Name offset Y"     value={nameOffsetY}  min={20}   max={500}  step={5}   onChange={setNameOffsetY} />
           <Slider label="Name right X"      value={nameRightX}   min={1500} max={2480} step={2}   onChange={setNameRightX} />
           <Slider label="Name font size"    value={nameFontSize} min={20}   max={200}  step={2}   onChange={setNameFontSize} />
+
+          <div className="pt-2 mt-2 border-t">
+            <div className="text-xs font-bold text-gray-500 uppercase mb-2">Event Partner</div>
+            <Slider label="Label Y"        value={partnerLabelY}  min={2900} max={3450} step={5} onChange={setPartnerLabelY} />
+            <Slider label="Label size"     value={partnerLabelFs} min={16}   max={80}   step={1} onChange={setPartnerLabelFs} />
+            <Slider label="Logo Y"         value={partnerLogoY}   min={2950} max={3500} step={5} onChange={setPartnerLogoY} />
+            <Slider label="Logo height"    value={partnerLogoH}   min={60}   max={400}  step={2} onChange={setPartnerLogoH} />
+          </div>
 
           <label className="block">
             <span className="text-xs font-semibold text-gray-600 uppercase">Name color</span>
