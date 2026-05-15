@@ -6,9 +6,11 @@
  * the participant is asked to honour. The page should never use the word
  * "pledge" and shouldn't show a participant counter.
  */
-const CERTIFICATE_ONLY_SLUGS = new Set<string>([
+export const CERTIFICATE_ONLY_SLUG_LIST = [
   'jungle-adventure-2026',
-]);
+] as const;
+
+const CERTIFICATE_ONLY_SLUGS = new Set<string>(CERTIFICATE_ONLY_SLUG_LIST);
 
 export function isCertificateOnly(slug: string): boolean {
   return CERTIFICATE_ONLY_SLUGS.has(slug);

@@ -20,6 +20,7 @@ export function Header() {
 
           <nav className="hidden md:flex space-x-8 items-center">
             <Link href="/pledges" className="text-gray-600 hover:text-teal-500 font-medium transition-colors">Active Pledges</Link>
+            <Link href="/certificates" className="text-gray-600 hover:text-teal-500 font-medium transition-colors">Certificates</Link>
             <Link href="/quiz" className="text-gray-600 hover:text-teal-500 font-medium transition-colors">Quizzes</Link>
             <Link href="/calendar" className="text-gray-600 hover:text-teal-500 font-medium transition-colors">Calendar</Link>
             <Link href="/organizations" className="text-gray-600 hover:text-teal-500 font-medium transition-colors">Organizations</Link>
@@ -38,6 +39,7 @@ export function Header() {
         <div className="md:hidden bg-white border-t border-gray-100 absolute w-full left-0">
           <div className="px-4 pt-4 pb-6 space-y-4 shadow-lg flex flex-col">
             <Link onClick={() => setIsOpen(false)} href="/pledges" className="block text-gray-800 font-medium text-lg">Active Pledges</Link>
+            <Link onClick={() => setIsOpen(false)} href="/certificates" className="block text-gray-800 font-medium text-lg">Certificates</Link>
             <Link onClick={() => setIsOpen(false)} href="/quiz" className="block text-gray-800 font-medium text-lg">Quizzes</Link>
             <Link onClick={() => setIsOpen(false)} href="/calendar" className="block text-gray-800 font-medium text-lg">Calendar</Link>
             <Link onClick={() => setIsOpen(false)} href="/organizations" className="block text-gray-800 font-medium text-lg">Organizations</Link>
