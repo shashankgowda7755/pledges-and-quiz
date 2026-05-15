@@ -22,9 +22,9 @@ const ibmMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://communitreepledges.netlify.app'),
-  title: 'COMMUNITREE — Turn Intention into Action',
+  title: 'COMMUNITREE & EZONE — Turn Intention into Action',
   description: 'Take a pledge in 30 seconds. Download your poster instantly. Join thousands of changemakers.',
-  openGraph: { siteName: 'Communitree', url: 'https://communitreepledges.netlify.app' },
+  openGraph: { siteName: 'Communitree & EZONE', url: 'https://communitreepledges.netlify.app' },
   twitter: { card: 'summary_large_image' },
 };
 

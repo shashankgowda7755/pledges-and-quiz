@@ -33,7 +33,7 @@ export default async function AdminDashboardPage() {
     <div className="pb-16 animate-in fade-in duration-500">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard Overview</h1>
-        <p className="text-gray-500 text-sm mt-2">Welcome to the Communitree Admin Panel. Here is your global impact.</p>
+        <p className="text-gray-500 text-sm mt-2">Welcome to the Communitree &amp; EZONE Admin Panel. Here is your global impact.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">

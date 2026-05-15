@@ -11,7 +11,7 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   if (!quiz) return {};
   
   return {
-    title: `${quiz.title} | Communitree`,
+    title: `${quiz.title} | Communitree & EZONE`,
     description: quiz.description.slice(0, 155),
     openGraph: { images: [quiz.bgImageUrl] }
   };

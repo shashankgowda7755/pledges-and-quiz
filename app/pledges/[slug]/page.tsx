@@ -13,7 +13,7 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   if (!pledge) return {};
   
   return {
-    title: `${pledge.name} | Communitree`,
+    title: `${pledge.name} | Communitree & EZONE`,
     description: pledge.description.slice(0, 155),
     openGraph: { images: [pledge.bgImageUrl] }
   };

@@ -10,9 +10,12 @@ export function Header() {
     <header className="sticky top-0 z-40 backdrop-blur-md bg-white/70 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center gap-3" aria-label="Communitree & EZONE">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 44, width: 'auto', display: 'block', filter: 'brightness(0) invert(0.5) sepia(1) hue-rotate(110deg) saturate(5) brightness(0.55)' }} />
+            <span className="text-gray-300 text-2xl font-light leading-none">&amp;</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/ezone-logo.png" alt="EZONE" style={{ height: 36, width: 'auto', display: 'block' }} />
           </Link>
 
           <nav className="hidden md:flex space-x-8 items-center">

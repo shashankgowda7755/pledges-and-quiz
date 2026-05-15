@@ -62,12 +62,15 @@ export function Footer() {
           </div>
         </div>
         <div className="pt-8 border-t border-gray-200 text-center text-gray-500">
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center items-center gap-4 mb-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 40, width: 'auto', display: 'block', filter: 'brightness(0) invert(0.5) sepia(1) hue-rotate(110deg) saturate(5) brightness(0.55)' }} />
+            <span className="text-gray-300 text-2xl font-light leading-none">&amp;</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/ezone-logo.png" alt="EZONE" style={{ height: 32, width: 'auto', display: 'block' }} />
           </div>
-          <p className="font-medium text-gray-900 mb-1">COMMUNITREE — Turn Intention into Action.</p>
-          <p>© {new Date().getFullYear()} COMMUNITREE.</p>
+          <p className="font-medium text-gray-900 mb-1">COMMUNITREE &amp; EZONE — Turn Intention into Action.</p>
+          <p>© {new Date().getFullYear()} COMMUNITREE &amp; EZONE.</p>
         </div>
       </div>
     </footer>

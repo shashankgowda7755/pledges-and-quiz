@@ -5,7 +5,7 @@ export const downloadPoster = (canvas: HTMLCanvasElement, userName: string, pref
       const url  = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href     = url;
-      link.download = `${prefix}_${userName.replace(/\s+/g, '_')}_Communitree.png`;
+      link.download = `${prefix}_${userName.replace(/\s+/g, '_')}_Communitree_EZONE.png`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, 'image/png');
@@ -29,8 +29,8 @@ export const sharePoster = async (
           try {
             await navigator.share({
               files: [file],
-              title: 'My Communitree Pledge',
-              text: `I just took a pledge on Communitree. Join me! ${pledgeUrl}`,
+              title: 'My Communitree & EZONE Pledge',
+              text: `I just took a pledge on Communitree & EZONE. Join me! ${pledgeUrl}`,
             });
           } catch { /* user cancelled */ }
         } else {

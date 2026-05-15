@@ -34,7 +34,7 @@ export default function FullWaterPledgePreview() {
     <div className="min-h-screen flex flex-col bg-[#F2F0E9] relative">
       {/* Simple header */}
       <header className="w-full bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <span className="font-montserrat font-black text-lg tracking-tight text-[#1e1b4b]">COMMUNITREE</span>
+        <span className="font-montserrat font-black text-lg tracking-tight text-[#1e1b4b]">COMMUNITREE &amp; EZONE</span>
         <span className="text-xs font-bold text-orange-400 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full">Preview Mode</span>
       </header>
       <div className="flex-1">
