@@ -7,9 +7,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { slug, name, description, category, bgImageUrl, impactMetric, impactPerUnit, commitments, eventId, certConfig, isCertificateOnly } = body;
+    const { slug, name, description, category, bgImageUrl, impactMetric, impactPerUnit, commitments, eventId, eventDate, certConfig, isCertificateOnly } = body;
 
-    if (!slug || !name || !description || !bgImageUrl || !impactMetric || !commitments || commitments.length === 0) {
+    const certOnly = Boolean(isCertificateOnly);
+    const commitmentList: string[] = Array.isArray(commitments) ? commitments : [];
+
+    // Certificates skip pledge framing, so they don't need commitments.
+    if (!slug || !name || !description || !bgImageUrl || !impactMetric || (!certOnly && commitmentList.length === 0)) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -21,12 +25,13 @@ export async function POST(req: NextRequest) {
         category,
         bgImageUrl,
         certConfig: certConfig || null,
-        isCertificateOnly: Boolean(isCertificateOnly),
+        isCertificateOnly: certOnly,
         impactMetric,
         impactPerUnit: parseFloat(impactPerUnit),
         eventId: eventId || null,
+        eventDate: eventDate ? new Date(eventDate) : null,
         commitments: {
-          create: commitments.map((text: string, i: number) => ({ text, order: i + 1 }))
+          create: commitmentList.map((text: string, i: number) => ({ text, order: i + 1 }))
         }
       }
     });

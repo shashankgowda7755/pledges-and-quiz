@@ -27,15 +27,9 @@ export default async function AdminCertificatesPage() {
             {certs.length} certificate{certs.length !== 1 ? 's' : ''} — branded, certificate-only events shown on the public Certificates page.
           </p>
         </div>
-        <Link href="/admin/pledges/new" className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-teal-500/20">
+        <Link href="/admin/certificates/new" className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-teal-500/20">
           + New Certificate
         </Link>
-      </div>
-
-      <div className="mb-6 bg-teal-50/60 border border-teal-100 rounded-xl px-5 py-4 text-sm text-gray-600">
-        A certificate is a pledge with <strong>Certificate-only mode</strong> turned on. Create one from
-        <Link href="/admin/pledges/new" className="text-teal-600 font-semibold mx-1 hover:underline">New Pledge</Link>
-        and tick that box — design name/photo/logo placement right there with the Certificate Layout editor.
       </div>
 
       <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm overflow-hidden mb-12">
@@ -43,7 +37,7 @@ export default async function AdminCertificatesPage() {
           <div className="text-center py-16 text-gray-400">
             <p className="text-4xl mb-3">🎓</p>
             <p className="font-medium">No certificates yet</p>
-            <p className="text-xs mt-1">Create a pledge with Certificate-only mode enabled.</p>
+            <Link href="/admin/certificates/new" className="text-teal-600 text-sm font-semibold mt-2 inline-block hover:underline">Create your first certificate →</Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
