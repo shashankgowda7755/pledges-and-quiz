@@ -5,7 +5,10 @@ import { cookies } from 'next/headers';
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies();
   const token = cookieStore.get('admin_token')?.value;
-  if (token !== process.env.ADMIN_PASSWORD) {
+  // Auth cookie value is 'admin_authenticated' (set by /api/admin/auth) — matches
+  // middleware + the other admin routes. Comparing to ADMIN_PASSWORD was wrong and
+  // 401'd every admin image upload.
+  if (token !== 'admin_authenticated') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
