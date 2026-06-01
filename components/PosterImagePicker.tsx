@@ -7,17 +7,17 @@ import { Crop, UploadCloud, X, Loader2, Link as LinkIcon } from 'lucide-react';
 import getCroppedImg from '@/utils/cropImage';
 import { downscaleImage } from '@/utils/downscaleImage';
 
-// Poster slot is rendered at 1080×1350 (4:5 portrait) across the app.
-const POSTER_W = 1080;
-const POSTER_H = 1350;
-const ASPECT = POSTER_W / POSTER_H;
-
 /**
- * Re-render an arbitrary cropped data URL onto a fixed 1080×1350 canvas so
- * every uploaded background matches the poster slot exactly, then hand back
- * a JPEG blob small enough to upload quickly.
+ * Re-render an arbitrary cropped data URL onto a fixed target canvas so every
+ * uploaded image matches its slot exactly, then hand back a JPEG blob small
+ * enough to upload quickly.
  */
-async function normalizeToPoster(croppedDataUrl: string, quality = 0.9): Promise<Blob> {
+async function normalizeTo(
+  croppedDataUrl: string,
+  targetW: number,
+  targetH: number,
+  quality = 0.9
+): Promise<Blob> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
@@ -26,13 +26,13 @@ async function normalizeToPoster(croppedDataUrl: string, quality = 0.9): Promise
   });
 
   const canvas = document.createElement('canvas');
-  canvas.width = POSTER_W;
-  canvas.height = POSTER_H;
+  canvas.width = targetW;
+  canvas.height = targetH;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D context unavailable');
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, 0, 0, POSTER_W, POSTER_H);
+  ctx.drawImage(img, 0, 0, targetW, targetH);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
@@ -47,11 +47,21 @@ export default function PosterImagePicker({
   value,
   onChange,
   required = false,
+  targetW = 1080,
+  targetH = 1350,
+  label = 'Crop Poster Background',
 }: {
   value: string;
   onChange: (url: string) => void;
   required?: boolean;
+  /** Output width in px. Default 1080 (poster). */
+  targetW?: number;
+  /** Output height in px. Default 1350 (poster). */
+  targetH?: number;
+  /** Crop modal heading. */
+  label?: string;
 }) {
+  const ASPECT = targetW / targetH;
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -90,10 +100,10 @@ export default function PosterImagePicker({
     try {
       const cropped = await getCroppedImg(rawImageSrc, croppedAreaPixels);
       if (!cropped) throw new Error('Crop failed');
-      const blob = await normalizeToPoster(cropped);
+      const blob = await normalizeTo(cropped, targetW, targetH);
 
       const fd = new FormData();
-      fd.append('file', new File([blob], `poster-${POSTER_W}x${POSTER_H}.jpg`, { type: 'image/jpeg' }));
+      fd.append('file', new File([blob], `crop-${targetW}x${targetH}.jpg`, { type: 'image/jpeg' }));
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Upload failed');
@@ -131,9 +141,14 @@ export default function PosterImagePicker({
 
         {value && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="Poster preview" className="h-20 w-16 object-cover rounded-lg border border-gray-200" />
+          <img
+            src={value}
+            alt="Preview"
+            className="h-20 object-cover rounded-lg border border-gray-200"
+            style={{ aspectRatio: `${targetW} / ${targetH}` }}
+          />
         )}
-        <span className="text-xs text-gray-400 font-medium">Crops to {POSTER_W}×{POSTER_H}</span>
+        <span className="text-xs text-gray-400 font-medium">Crops to {targetW}×{targetH}</span>
       </div>
 
       {error && <p className="text-xs text-red-600 font-bold">{error}</p>}
@@ -144,7 +159,7 @@ export default function PosterImagePicker({
           <div className="bg-white rounded-[1.5rem] w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                <Crop className="w-4 h-4 text-teal-500" /> Crop Poster Background
+                <Crop className="w-4 h-4 text-teal-500" /> {label}
               </h3>
               <button type="button" onClick={() => setRawImageSrc(null)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />

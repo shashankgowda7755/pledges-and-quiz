@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import PosterImagePicker from '@/components/PosterImagePicker';
 
 function slugify(str: string) {
   return str.toLowerCase().trim()
@@ -40,11 +41,9 @@ export default function EventForm({
   initialData?: EventInitial;
 }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const isEdit = Boolean(initialData);
 
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
@@ -59,26 +58,6 @@ export default function EventForm({
     isFeatured: initialData?.isFeatured ?? false,
     isActive: initialData?.isActive ?? true,
   });
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setError('');
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
-      setForm(f => ({ ...f, bannerUrl: data.url }));
-    } catch (err) {
-      setError('Upload failed: ' + (err instanceof Error ? err.message : 'Unknown error') + '. You can paste a banner URL instead.');
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,15 +156,14 @@ export default function EventForm({
       </div>
 
       <div className="space-y-4 pt-4 border-t border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Banner Image <span className="text-xs font-normal text-gray-400">(optional)</span></h3>
-        <input type="text" value={form.bannerUrl} onChange={e => setForm(f => ({ ...f, bannerUrl: e.target.value }))} className={input} placeholder="Paste a banner image URL" />
-        <div className="flex items-center gap-4">
-          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50">
-            {uploading ? 'Uploading…' : 'Upload Banner'}
-          </button>
-          {form.bannerUrl && <img src={form.bannerUrl} alt="Banner preview" className="h-16 rounded border object-cover" />}
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-        </div>
+        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Banner Image <span className="text-xs font-normal text-gray-400">(optional, 1200×630)</span></h3>
+        <PosterImagePicker
+          value={form.bannerUrl}
+          onChange={(url) => setForm(f => ({ ...f, bannerUrl: url }))}
+          targetW={1200}
+          targetH={630}
+          label="Crop Event Banner"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-gray-100">
@@ -204,7 +182,7 @@ export default function EventForm({
       {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold">{error}</div>}
 
       <div className="pt-6 flex justify-end">
-        <button type="submit" disabled={loading || uploading} className="px-8 py-3.5 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 disabled:opacity-50 transition-all shadow-md shadow-teal-500/20 text-[15px]">
+        <button type="submit" disabled={loading} className="px-8 py-3.5 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 disabled:opacity-50 transition-all shadow-md shadow-teal-500/20 text-[15px]">
           {loading ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Event'}
         </button>
       </div>
