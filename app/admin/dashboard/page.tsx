@@ -1,13 +1,14 @@
 import prisma from '@/lib/prisma';
-import { Building2, HeartHandshake, CheckSquare, TrendingUp } from 'lucide-react';
+import { Building2, HeartHandshake, CheckSquare, CalendarDays, TrendingUp } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
-  const [totalPledges, totalOrgs, totalQuizAttempts, pledges] = await Promise.all([
+  const [totalPledges, totalOrgs, totalQuizAttempts, totalEvents, pledges] = await Promise.all([
     prisma.submission.count(),
     prisma.organization.count({ where: { isActive: true } }),
     prisma.quizAttempt.count(),
+    prisma.event.count({ where: { isActive: true } }),
     prisma.pledge.findMany({
       include: { _count: { select: { submissions: true } } }
     })
@@ -24,6 +25,7 @@ export default async function AdminDashboardPage() {
   }, [] as { metric: string, total: number }[]);
 
   const stats = [
+    { label: 'Active Events', value: totalEvents, icon: CalendarDays, color: 'bg-teal-50 text-teal-600' },
     { label: 'Active Organizations', value: totalOrgs, icon: Building2, color: 'bg-blue-50 text-blue-600' },
     { label: 'Total Pledges Taken', value: totalPledges, icon: HeartHandshake, color: 'bg-green-50 text-green-600' },
     { label: 'Total Quiz Attempts', value: totalQuizAttempts, icon: CheckSquare, color: 'bg-purple-50 text-purple-600' },
@@ -36,7 +38,7 @@ export default async function AdminDashboardPage() {
         <p className="text-gray-500 text-sm mt-2">Welcome to the Communitree &amp; EZONE Admin Panel. Here is your global impact.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {stats.map(stat => (
           <div key={stat.label} className="bg-white rounded-[1.5rem] p-6 border border-gray-100 shadow-sm flex items-center justify-between">
             <div>

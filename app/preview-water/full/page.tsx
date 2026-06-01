@@ -16,6 +16,7 @@ const WATER_PLEDGE = {
   eventDate: new Date('2026-04-17T00:00:00.000Z'),
   createdAt: new Date(),
   orgId: null,
+  eventId: null,
   organization: null,
   commitments: [
     { id: 'c1', pledgeId: 'mock-water-pledge', text: 'I will turn off taps when not in use', order: 1 },

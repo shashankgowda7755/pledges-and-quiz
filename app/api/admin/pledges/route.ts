@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { slug, name, description, category, bgImageUrl, impactMetric, impactPerUnit, commitments } = body;
+    const { slug, name, description, category, bgImageUrl, impactMetric, impactPerUnit, commitments, eventId } = body;
 
     if (!slug || !name || !description || !bgImageUrl || !impactMetric || !commitments || commitments.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
         bgImageUrl,
         impactMetric,
         impactPerUnit: parseFloat(impactPerUnit),
+        eventId: eventId || null,
         commitments: {
           create: commitments.map((text: string, i: number) => ({ text, order: i + 1 }))
         }

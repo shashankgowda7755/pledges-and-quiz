@@ -1,7 +1,16 @@
+import prisma from '@/lib/prisma';
 import AddPledgeForm from './AddPledgeForm';
 import Link from 'next/link';
 
-export default function NewPledgePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function NewPledgePage() {
+  const events = await prisma.event.findMany({
+    where: { isActive: true },
+    orderBy: { startDate: 'asc' },
+    select: { id: true, title: true },
+  });
+
   return (
     <div className="pb-16 animate-in fade-in duration-500 max-w-4xl">
       <div className="mb-8">
@@ -14,7 +23,7 @@ export default function NewPledgePage() {
       </div>
 
       <div className="bg-white rounded-[1.5rem] border border-gray-100 shadow-sm p-8">
-        <AddPledgeForm />
+        <AddPledgeForm events={events} />
       </div>
     </div>
   );

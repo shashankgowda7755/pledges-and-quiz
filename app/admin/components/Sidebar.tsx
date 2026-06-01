@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, HeartHandshake, CheckSquare, LayoutDashboard, Users } from 'lucide-react';
+import { Building2, HeartHandshake, CheckSquare, LayoutDashboard, Users, CalendarDays } from 'lucide-react';
 import LogoutButton from '../orgs/LogoutButton';
 
 export default function Sidebar() {
@@ -10,6 +10,7 @@ export default function Sidebar() {
 
   const navItems = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Events', href: '/admin/events', icon: CalendarDays },
     { name: 'Organizations', href: '/admin/orgs', icon: Building2 },
     { name: 'Pledges', href: '/admin/pledges', icon: HeartHandshake },
     { name: 'Quizzes', href: '/admin/quizzes', icon: CheckSquare },

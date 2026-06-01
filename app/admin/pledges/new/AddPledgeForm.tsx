@@ -10,14 +10,16 @@ function slugify(str: string) {
     .replace(/-+/g, '-');
 }
 
-export default function AddPledgeForm() {
+type EventOption = { id: string; title: string };
+
+export default function AddPledgeForm({ events = [] }: { events?: EventOption[] }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [form, setForm] = useState({
     name: '',
     slug: '',
@@ -26,6 +28,7 @@ export default function AddPledgeForm() {
     bgImageUrl: '',
     impactMetric: 'bottles_saved',
     impactPerUnit: '1',
+    eventId: '',
   });
 
   const [commitments, setCommitments] = useState<string[]>(Array(10).fill(''));
@@ -129,6 +132,14 @@ export default function AddPledgeForm() {
             <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Impact Multiplier *</label>
             <input type="number" step="0.1" required value={form.impactPerUnit} onChange={e => setForm(f => ({ ...f, impactPerUnit: e.target.value }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 font-medium" placeholder="10" />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Attach to Event <span className="font-normal text-gray-400 normal-case">(optional)</span></label>
+          <select value={form.eventId} onChange={e => setForm(f => ({ ...f, eventId: e.target.value }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 font-medium">
+            <option value="">— No event —</option>
+            {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
+          </select>
         </div>
       </div>
 

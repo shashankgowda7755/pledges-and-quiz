@@ -11,7 +11,9 @@ function slugify(str: string) {
     .replace(/-+/g, '-');
 }
 
-export default function AddQuizForm() {
+type EventOption = { id: string; title: string };
+
+export default function AddQuizForm({ events = [] }: { events?: EventOption[] }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,6 +27,7 @@ export default function AddQuizForm() {
     description: '',
     category: 'environment',
     bgImageUrl: '',
+    eventId: '',
   });
 
   const [questions, setQuestions] = useState([
@@ -162,6 +165,13 @@ export default function AddQuizForm() {
               <option value="health">Health</option>
               <option value="social">Social</option>
               <option value="lifestyle">Lifestyle</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Attach to Event <span className="font-normal text-gray-400 normal-case">(optional)</span></label>
+            <select value={form.eventId} onChange={e => setForm(f => ({ ...f, eventId: e.target.value }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 font-medium">
+              <option value="">— No event —</option>
+              {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
             </select>
           </div>
         </div>

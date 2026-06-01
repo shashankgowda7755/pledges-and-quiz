@@ -24,7 +24,26 @@ model Organization {
   pledges            Pledge[]
   submissions        Submission[]
   quizAttempts       QuizAttempt[]
+  hostedEvents       Event[]
   createdAt          DateTime     @default(now())
+}
+
+model Event {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String
+  bannerUrl   String?       // hero/banner image for the event landing page
+  startDate   DateTime
+  endDate     DateTime?     // null = single-day event
+  location    String?
+  isActive    Boolean       @default(true)
+  isFeatured  Boolean       @default(false)
+  hostOrgId   String?
+  hostOrg     Organization? @relation(fields: [hostOrgId], references: [id])
+  pledges     Pledge[]
+  quizzes     Quiz[]
+  createdAt   DateTime      @default(now())
 }
 
 model Pledge {
@@ -44,6 +63,8 @@ model Pledge {
   commitments   PledgeCommitment[]   // The 10 checkbox lines users must tick
   organization  Organization?        @relation(fields: [orgId], references: [id])
   orgId         String?
+  event         Event?               @relation(fields: [eventId], references: [id])
+  eventId       String?
 }
 
 model PledgeCommitment {
@@ -80,6 +101,8 @@ model Quiz {
   isFeatured  Boolean       @default(false)
   questions   Question[]
   attempts    QuizAttempt[]
+  event       Event?        @relation(fields: [eventId], references: [id])
+  eventId     String?
   createdAt   DateTime      @default(now())
 }
 

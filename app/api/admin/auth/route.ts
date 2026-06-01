@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const res = NextResponse.json({ ok: true });
   res.cookies.set(COOKIE_NAME, COOKIE_VALUE, {
     httpOnly: true,
-    path: '/admin',
+    path: '/', // must cover /api/admin/* too, not just /admin pages
     maxAge: MAX_AGE,
     sameSite: 'lax',
   });

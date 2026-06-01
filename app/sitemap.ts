@@ -6,11 +6,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let pledges: { slug: string; createdAt: Date }[] = [];
   let quizzes: { slug: string; createdAt: Date }[] = [];
+  let events: { slug: string; createdAt: Date }[] = [];
 
   try {
-    [pledges, quizzes] = await Promise.all([
+    [pledges, quizzes, events] = await Promise.all([
       prisma.pledge.findMany({ where: { isActive: true }, select: { slug: true, createdAt: true } }),
       prisma.quiz.findMany({ where: { isActive: true }, select: { slug: true, createdAt: true } }),
+      prisma.event.findMany({ where: { isActive: true }, select: { slug: true, createdAt: true } }),
     ]);
   } catch {
     // DB not available at build time — dynamic routes will be omitted from sitemap
@@ -20,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'monthly', priority: 1 },
     { url: `${baseUrl}/pledges`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/quiz`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/events`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/calendar`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     { url: `${baseUrl}/organizations`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
     ...pledges.map(p => ({
@@ -31,6 +34,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...quizzes.map(q => ({
       url: `${baseUrl}/quiz/${q.slug}`,
       lastModified: q.createdAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
+    ...events.map(e => ({
+      url: `${baseUrl}/events/${e.slug}`,
+      lastModified: e.createdAt,
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     })),
