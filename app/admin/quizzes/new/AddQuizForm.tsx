@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2 } from 'lucide-react';
+import PosterImagePicker from '@/components/PosterImagePicker';
 
 function slugify(str: string) {
   return str.toLowerCase().trim()
@@ -15,10 +16,8 @@ type EventOption = { id: string; title: string };
 
 export default function AddQuizForm({ events = [] }: { events?: EventOption[] }) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
@@ -80,26 +79,6 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
       opt.isCorrect = i === optIndex;
     });
     setQuestions(newQ);
-  };
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setError('');
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
-      setForm(f => ({ ...f, bgImageUrl: data.url }));
-    } catch (err) {
-      setError('Upload failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,16 +158,11 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
 
       <div className="space-y-6 pt-4 border-t border-gray-100">
         <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Poster Background (1080x1350)</h3>
-        <div className="flex flex-col gap-4">
-          <input type="text" required value={form.bgImageUrl} onChange={e => setForm(f => ({ ...f, bgImageUrl: e.target.value }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 font-medium" placeholder="https://..." />
-          <div className="flex items-center gap-4">
-            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50">
-              {uploading ? 'Uploading...' : 'Upload Image to Vercel'}
-            </button>
-            {form.bgImageUrl && <img src={form.bgImageUrl} alt="Preview" className="h-16 rounded border" />}
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-          </div>
-        </div>
+        <PosterImagePicker
+          required
+          value={form.bgImageUrl}
+          onChange={(url) => setForm(f => ({ ...f, bgImageUrl: url }))}
+        />
       </div>
 
       {/* Questions Section */}
@@ -260,7 +234,7 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
       <div className="pt-6 flex justify-end shrink-0 mb-8">
         <button
           type="submit"
-          disabled={loading || uploading}
+          disabled={loading}
           className="px-8 py-3.5 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 disabled:opacity-50 transition-all shadow-md shadow-teal-500/20 text-[15px]"
         >
           {loading ? 'Creating...' : 'Publish Quiz'}
