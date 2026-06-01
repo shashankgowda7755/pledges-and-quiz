@@ -91,25 +91,39 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       ctx.imageSmoothingQuality = 'high';
 
       // ── CUSTOM LAYOUT (admin-defined coordinates) ────────────────────────
+      // Coords are stored in the background image's own pixel space, so the
+      // canvas is sized to the actual image aspect (no fixed 1080×1350).
       if (layout === 'custom' && cert) {
-        // 1. Background — full bleed 1080×1350
+        let bg: HTMLImageElement | null = null;
         try {
-          const bg = await loadImage(bgImageUrl);
-          ctx.drawImage(bg, 0, 0, width, h);
+          bg = await loadImage(bgImageUrl);
         } catch (err) {
           console.error('[PosterCanvas] custom bg load failed:', bgImageUrl, err);
+        }
+
+        const baseW = bg?.naturalWidth || bg?.width || 1080;
+        const baseH = bg?.naturalHeight || bg?.height || 1350;
+        const cscale = width / baseW;
+        const ch = Math.round(width * (baseH / baseW));
+        canvas.width = width;
+        canvas.height = ch;
+
+        // 1. Background — full bleed at the image's real aspect
+        if (bg) {
+          ctx.drawImage(bg, 0, 0, width, ch);
+        } else {
           ctx.fillStyle = '#f3f4f6';
-          ctx.fillRect(0, 0, width, h);
+          ctx.fillRect(0, 0, width, ch);
         }
 
         // 2. Photo slot — rect clip, optional rotation, cover-fill
         if (userPhotoUrl && cert.photo) {
           try {
             const photo = await loadImage(userPhotoUrl);
-            const rx = cert.photo.x * scale;
-            const ry = cert.photo.y * scale;
-            const rw = cert.photo.w * scale;
-            const rh = cert.photo.h * scale;
+            const rx = cert.photo.x * cscale;
+            const ry = cert.photo.y * cscale;
+            const rw = cert.photo.w * cscale;
+            const rh = cert.photo.h * cscale;
             const angle = (cert.photo.angle ?? 0) * (Math.PI / 180);
 
             ctx.save();
@@ -134,10 +148,10 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
           const fontMontserrat = getComputedStyle(document.documentElement)
             .getPropertyValue('--font-montserrat') || 'Montserrat';
           const n = cert.name;
-          const nameX = n.x * scale;
-          const nameY = n.y * scale;
-          const maxW  = n.maxW * scale;
-          let fs = n.fontSize * scale;
+          const nameX = n.x * cscale;
+          const nameY = n.y * cscale;
+          const maxW  = n.maxW * cscale;
+          let fs = n.fontSize * cscale;
 
           ctx.shadowColor  = 'transparent';
           ctx.shadowBlur   = 0;
@@ -148,7 +162,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
 
           const measured = ctx.measureText(userName).width;
           if (maxW > 0 && measured > maxW) {
-            fs = Math.max(14 * scale, fs * (maxW / measured));
+            fs = Math.max(14 * cscale, fs * (maxW / measured));
             ctx.font = `700 ${fs}px ${fontMontserrat}, sans-serif`;
           }
           ctx.fillText(userName, nameX, nameY);
@@ -160,9 +174,9 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             if (!im.url) continue;
             try {
               const img = await loadImage(im.url);
-              const iw = im.w * scale;
+              const iw = im.w * cscale;
               const ih = (img.height / img.width) * iw;
-              ctx.drawImage(img, im.x * scale, im.y * scale, iw, ih);
+              ctx.drawImage(img, im.x * cscale, im.y * cscale, iw, ih);
             } catch { /* skip this overlay */ }
           }
         }

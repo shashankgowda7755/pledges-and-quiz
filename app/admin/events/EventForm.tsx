@@ -156,7 +156,7 @@ export default function EventForm({
       </div>
 
       <div className="space-y-4 pt-4 border-t border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Banner Image <span className="text-xs font-normal text-gray-400">(optional, 1200×630)</span></h3>
+        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Banner Image <span className="text-xs font-normal text-gray-400">(optional, any size — original kept)</span></h3>
         <PosterImagePicker
           value={form.bannerUrl}
           onChange={(url) => setForm(f => ({ ...f, bannerUrl: url }))}

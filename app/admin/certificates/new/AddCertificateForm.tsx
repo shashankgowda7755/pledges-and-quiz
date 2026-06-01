@@ -119,7 +119,7 @@ export default function AddCertificateForm({ events = [] }: { events?: EventOpti
       </div>
 
       <div className="space-y-6 pt-4 border-t border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Certificate Background (1080x1350)</h3>
+        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Certificate Background <span className="text-xs font-normal text-gray-400">(any size — original kept)</span></h3>
         <PosterImagePicker required value={form.bgImageUrl} onChange={(url) => setForm(f => ({ ...f, bgImageUrl: url }))} />
       </div>
 

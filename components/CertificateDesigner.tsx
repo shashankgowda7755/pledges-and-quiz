@@ -4,11 +4,21 @@ import { useRef, useState } from 'react';
 import { Plus, Trash2, Type, ImageIcon, User, Loader2 } from 'lucide-react';
 import type { CertConfig, CertNameBox, CertPhotoBox, CertImage } from '@/components/PledgePosterCanvas';
 
-const REAL_W = 1080;
-const REAL_H = 1350;
+// Placement is stored in the background image's own pixel space, so coordinates
+// stay correct whatever size the user uploads. These are only the starting
+// fallback until the real image loads.
+const FALLBACK_W = 1080;
+const FALLBACK_H = 1350;
 
-const DEFAULT_NAME: CertNameBox = { x: 540, y: 1000, fontSize: 64, color: '#1a2744', align: 'center', maxW: 800 };
-const DEFAULT_PHOTO: CertPhotoBox = { x: 390, y: 300, w: 300, h: 380, angle: 0 };
+// Defaults are derived from the actual image dimensions when a box is enabled.
+const makeDefaultName = (w: number, h: number): CertNameBox => ({
+  x: Math.round(w / 2), y: Math.round(h * 0.74), fontSize: Math.round(w * 0.06),
+  color: '#1a2744', align: 'center', maxW: Math.round(w * 0.75),
+});
+const makeDefaultPhoto = (w: number, h: number): CertPhotoBox => ({
+  x: Math.round(w * 0.36), y: Math.round(h * 0.22),
+  w: Math.round(w * 0.28), h: Math.round(w * 0.35), angle: 0,
+});
 
 type DragKind =
   | { kind: 'name-move' }
@@ -31,19 +41,23 @@ export default function CertificateDesigner({
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [imgAspect, setImgAspect] = useState<Record<number, number>>({}); // index -> h/w
+  const [dims, setDims] = useState<{ w: number; h: number }>({ w: FALLBACK_W, h: FALLBACK_H });
+
+  const RW = dims.w;
+  const RH = dims.h;
 
   const name = value.name ?? null;
   const photo = value.photo ?? null;
   const images = value.images ?? [];
 
   const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
-  const getScale = () => (containerRef.current ? containerRef.current.clientWidth / REAL_W : 1);
+  const getScale = () => (containerRef.current ? containerRef.current.clientWidth / RW : 1);
 
   const pctBox = (x: number, y: number, w: number, h: number) => ({
-    left: `${(x / REAL_W) * 100}%`,
-    top: `${(y / REAL_H) * 100}%`,
-    width: `${(w / REAL_W) * 100}%`,
-    height: `${(h / REAL_H) * 100}%`,
+    left: `${(x / RW) * 100}%`,
+    top: `${(y / RH) * 100}%`,
+    width: `${(w / RW) * 100}%`,
+    height: `${(h / RH) * 100}%`,
   });
 
   // ── drag engine ─────────────────────────────────────────────
@@ -62,20 +76,20 @@ export default function CertificateDesigner({
       const dy = Math.round((ev.clientY - startY) / scale);
 
       if (drag.kind === 'name-move' && snapName) {
-        onChange({ ...value, name: { ...snapName, x: clamp(snapName.x + dx, 0, REAL_W), y: clamp(snapName.y + dy, 0, REAL_H) } });
+        onChange({ ...value, name: { ...snapName, x: clamp(snapName.x + dx, 0, RW), y: clamp(snapName.y + dy, 0, RH) } });
       } else if (drag.kind === 'name-resize' && snapName) {
-        onChange({ ...value, name: { ...snapName, maxW: clamp(snapName.maxW + dx, 80, REAL_W) } });
+        onChange({ ...value, name: { ...snapName, maxW: clamp(snapName.maxW + dx, 80, RW) } });
       } else if (drag.kind === 'photo-move' && snapPhoto) {
-        onChange({ ...value, photo: { ...snapPhoto, x: clamp(snapPhoto.x + dx, 0, REAL_W - snapPhoto.w), y: clamp(snapPhoto.y + dy, 0, REAL_H - snapPhoto.h) } });
+        onChange({ ...value, photo: { ...snapPhoto, x: clamp(snapPhoto.x + dx, 0, RW - snapPhoto.w), y: clamp(snapPhoto.y + dy, 0, RH - snapPhoto.h) } });
       } else if (drag.kind === 'photo-resize' && snapPhoto) {
-        onChange({ ...value, photo: { ...snapPhoto, w: clamp(snapPhoto.w + dx, 60, REAL_W - snapPhoto.x), h: clamp(snapPhoto.h + dy, 60, REAL_H - snapPhoto.y) } });
+        onChange({ ...value, photo: { ...snapPhoto, w: clamp(snapPhoto.w + dx, 60, RW - snapPhoto.x), h: clamp(snapPhoto.h + dy, 60, RH - snapPhoto.y) } });
       } else if (drag.kind === 'image-move') {
         const i = drag.index;
-        const next = snapImages.map((im, k) => k === i ? { ...im, x: clamp(im.x + dx, 0, REAL_W), y: clamp(im.y + dy, 0, REAL_H) } : im);
+        const next = snapImages.map((im, k) => k === i ? { ...im, x: clamp(im.x + dx, 0, RW), y: clamp(im.y + dy, 0, RH) } : im);
         onChange({ ...value, images: next });
       } else if (drag.kind === 'image-resize') {
         const i = drag.index;
-        const next = snapImages.map((im, k) => k === i ? { ...im, w: clamp(im.w + dx, 30, REAL_W) } : im);
+        const next = snapImages.map((im, k) => k === i ? { ...im, w: clamp(im.w + dx, 30, RW) } : im);
         onChange({ ...value, images: next });
       }
     };
@@ -88,8 +102,8 @@ export default function CertificateDesigner({
   };
 
   // ── toggles + mutators ──────────────────────────────────────
-  const toggleName = () => onChange({ ...value, name: name ? null : { ...DEFAULT_NAME } });
-  const togglePhoto = () => onChange({ ...value, photo: photo ? null : { ...DEFAULT_PHOTO } });
+  const toggleName = () => onChange({ ...value, name: name ? null : makeDefaultName(RW, RH) });
+  const togglePhoto = () => onChange({ ...value, photo: photo ? null : makeDefaultPhoto(RW, RH) });
   const patchName = (p: Partial<CertNameBox>) => name && onChange({ ...value, name: { ...name, ...p } });
   const patchPhoto = (p: Partial<CertPhotoBox>) => photo && onChange({ ...value, photo: { ...photo, ...p } });
   const removeImage = (i: number) => onChange({ ...value, images: images.filter((_, k) => k !== i) });
@@ -105,7 +119,7 @@ export default function CertificateDesigner({
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (res.ok && data.url) {
-        const newImg: CertImage = { url: data.url, x: 100, y: 1150, w: 200 };
+        const newImg: CertImage = { url: data.url, x: Math.round(RW * 0.09), y: Math.round(RH * 0.85), w: Math.round(RW * 0.19) };
         onChange({ ...value, images: [...images, newImg] });
       }
     } finally {
@@ -127,10 +141,19 @@ export default function CertificateDesigner({
     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,360px)_1fr] gap-6">
       {/* ── Canvas preview with draggable boxes ── */}
       <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-100 select-none">
-        <div ref={containerRef} className="relative w-full" style={{ paddingBottom: `${(REAL_H / REAL_W) * 100}%`, containerType: 'inline-size' }}>
+        <div ref={containerRef} className="relative w-full" style={{ paddingBottom: `${(RH / RW) * 100}%`, containerType: 'inline-size' }}>
           <div className="absolute inset-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={bgImageUrl} alt="Poster" className="w-full h-full object-cover pointer-events-none" draggable={false} />
+            <img
+              src={bgImageUrl}
+              alt="Poster"
+              className="w-full h-full object-cover pointer-events-none"
+              draggable={false}
+              onLoad={(e) => {
+                const t = e.currentTarget;
+                if (t.naturalWidth && t.naturalHeight) setDims({ w: t.naturalWidth, h: t.naturalHeight });
+              }}
+            />
 
             {/* Photo box */}
             {photo && (
@@ -145,12 +168,12 @@ export default function CertificateDesigner({
             {/* Name box */}
             {name && (
               <div
-                style={{ position: 'absolute', left: `${(name.x / REAL_W) * 100}%`, top: `${(name.y / REAL_H) * 100}%`, width: `${(name.maxW / REAL_W) * 100}%`, transform: alignTransform(name.align), cursor: 'move' }}
+                style={{ position: 'absolute', left: `${(name.x / RW) * 100}%`, top: `${(name.y / RH) * 100}%`, width: `${(name.maxW / RW) * 100}%`, transform: alignTransform(name.align), cursor: 'move' }}
                 onMouseDown={(e) => startDrag(e, { kind: 'name-move' })}
               >
                 <div
                   className="border-2 border-teal-500 bg-teal-400/10 rounded px-1 whitespace-nowrap overflow-hidden"
-                  style={{ textAlign: name.align, color: name.color, fontWeight: 700, fontSize: `clamp(8px, ${(name.fontSize / REAL_W) * 100}cqw, 200px)`, lineHeight: 1.1 }}
+                  style={{ textAlign: name.align, color: name.color, fontWeight: 700, fontSize: `clamp(8px, ${(name.fontSize / RW) * 100}cqw, 200px)`, lineHeight: 1.1 }}
                 >
                   {sampleName}
                 </div>
@@ -208,7 +231,7 @@ export default function CertificateDesigner({
                 </select>
               </Field>
               <Field label="Max width">
-                <input type="number" min={80} max={REAL_W} value={name.maxW} onChange={(e) => patchName({ maxW: Number(e.target.value) })} className={inputCls} />
+                <input type="number" min={80} max={RW} value={name.maxW} onChange={(e) => patchName({ maxW: Number(e.target.value) })} className={inputCls} />
               </Field>
               <div className="col-span-2 text-[11px] text-gray-400 font-mono">x: {name.x} · y: {name.y}</div>
             </div>
