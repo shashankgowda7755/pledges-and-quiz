@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2 } from 'lucide-react';
 import PosterImagePicker from '@/components/PosterImagePicker';
+import CertificateDesigner from '@/components/CertificateDesigner';
+import type { CertConfig } from '@/components/PledgePosterCanvas';
 
 function slugify(str: string) {
   return str.toLowerCase().trim()
@@ -28,6 +30,9 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
     bgImageUrl: '',
     eventId: '',
   });
+
+  const [cert, setCert] = useState<CertConfig>({ name: null, photo: null, images: [] });
+  const certEnabled = !!(cert.name || cert.photo || (cert.images && cert.images.length));
 
   const [questions, setQuestions] = useState([
     {
@@ -99,6 +104,7 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          certConfig: certEnabled ? JSON.stringify(cert) : null,
           questions
         }),
       });
@@ -163,6 +169,14 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
           value={form.bgImageUrl}
           onChange={(url) => setForm(f => ({ ...f, bgImageUrl: url }))}
         />
+      </div>
+
+      <div className="space-y-4 pt-4 border-t border-gray-100">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Certificate Layout <span className="text-xs font-normal text-gray-400">(optional)</span></h3>
+          <p className="text-xs text-gray-500 mt-2">Place the participant&apos;s name, photo, and logos on the poster. Leave all off to use the default layout.</p>
+        </div>
+        <CertificateDesigner bgImageUrl={form.bgImageUrl} value={cert} onChange={setCert} />
       </div>
 
       {/* Questions Section */}

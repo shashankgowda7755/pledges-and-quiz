@@ -53,6 +53,7 @@ model Pledge {
   description   String
   category      String               // environment | health | social | lifestyle
   bgImageUrl    String               // poster background image (1080x1350)
+  certConfig    String?              // JSON: custom certificate layout (name box, photo slot, overlay images) in 1080x1350 space
   impactMetric  String               // "bottles_saved" | "trees_planted" etc.
   impactPerUnit Float
   isActive      Boolean              @default(true)
@@ -97,6 +98,7 @@ model Quiz {
   description String
   category    String
   bgImageUrl  String
+  certConfig  String?       // JSON: custom certificate layout (name box, photo slot, overlay images) in 1080x1350 space
   isActive    Boolean       @default(true)
   isFeatured  Boolean       @default(false)
   questions   Question[]

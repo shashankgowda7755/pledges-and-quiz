@@ -2,12 +2,26 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Quiz, Question, AnswerOption } from '@prisma/client';
 import { PledgePosterCanvas } from './PledgePosterCanvas';
+import type { CertConfig } from './PledgePosterCanvas';
 import { downloadPoster, sharePoster } from '@/utils/downloadPoster';
 import { Check, X, Loader2, Camera, Edit2, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
+
+function parseCert(raw: string | null | undefined): CertConfig | null {
+  if (!raw) return null;
+  try {
+    const c = JSON.parse(raw) as CertConfig;
+    if (c && (c.name || c.photo || (c.images && c.images.length))) return c;
+  } catch { /* ignore malformed */ }
+  return null;
+}
+function quizLayout(quiz: { slug: string; certConfig?: string | null }): string {
+  if (parseCert(quiz.certConfig)) return 'custom';
+  return quiz.slug === 'house-sparrow' ? 'sparrow' : 'default';
+}
 
 type QuestionWithOptions = Omit<Question, 'quizId'> & {
   answerOptions: Omit<AnswerOption, 'isCorrect' | 'questionId'>[]
@@ -609,7 +623,8 @@ function QuizCertPreview({ quiz, userData: initialUserData, scoreData, posterUrl
             userPhotoUrl={cert.photoUrl}
             width={720}
             isQuiz={true}
-            layout={quiz.slug === 'house-sparrow' ? 'sparrow' : 'default'}
+            layout={quizLayout(quiz)}
+            cert={parseCert(quiz.certConfig)}
             orgLogoUrl={orgLogoUrl}
             logoPosition={logoPosition}
           />
@@ -762,7 +777,8 @@ function QuizSuccess({ quiz, userData: initialUserData, posterUrl, orgLogoUrl, l
             userPhotoUrl={cert.photoUrl}
             width={1080}
             isQuiz={true}
-            layout={quiz.slug === 'house-sparrow' ? 'sparrow' : 'default'}
+            layout={quizLayout(quiz)}
+            cert={parseCert(quiz.certConfig)}
             orgLogoUrl={orgLogoUrl}
             logoPosition={logoPosition}
           />
@@ -778,7 +794,8 @@ function QuizSuccess({ quiz, userData: initialUserData, posterUrl, orgLogoUrl, l
             userPhotoUrl={cert.photoUrl}
             width={720}
             isQuiz={true}
-            layout={quiz.slug === 'house-sparrow' ? 'sparrow' : 'default'}
+            layout={quizLayout(quiz)}
+            cert={parseCert(quiz.certConfig)}
             orgLogoUrl={orgLogoUrl}
             logoPosition={logoPosition}
           />

@@ -26,6 +26,34 @@ interface TuningParams {
   partnerLogoH?: number;
 }
 
+// Custom certificate layout — all coords in 1080×1350 base space.
+export interface CertNameBox {
+  x: number;            // anchor x (meaning depends on align)
+  y: number;            // vertical center
+  fontSize: number;     // px at 1080 base
+  color: string;
+  align: 'left' | 'center' | 'right';
+  maxW: number;         // max text width before shrink-to-fit
+}
+export interface CertPhotoBox {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  angle?: number;       // degrees
+}
+export interface CertImage {
+  url: string;
+  x: number;
+  y: number;
+  w: number;            // height derived from natural aspect
+}
+export interface CertConfig {
+  name?:   CertNameBox | null;
+  photo?:  CertPhotoBox | null;
+  images?: CertImage[];
+}
+
 interface Props {
   userName:      string;
   bgImageUrl:    string;
@@ -39,10 +67,11 @@ interface Props {
   isQuiz?:       boolean;
   layout?:       string;
   tuning?:       TuningParams;
+  cert?:         CertConfig | null;   // when set (with layout="custom"), drives placement
 }
 
 export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
-  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, orgLogoUrl, logoPosition, layout, tuning }, ref) => {
+  ({ userName, bgImageUrl, userPhotoUrl, width = 1080, orgLogoUrl, logoPosition, layout, tuning, cert }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
@@ -60,6 +89,86 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
       if (!ctx) return;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
+
+      // ── CUSTOM LAYOUT (admin-defined coordinates) ────────────────────────
+      if (layout === 'custom' && cert) {
+        // 1. Background — full bleed 1080×1350
+        try {
+          const bg = await loadImage(bgImageUrl);
+          ctx.drawImage(bg, 0, 0, width, h);
+        } catch (err) {
+          console.error('[PosterCanvas] custom bg load failed:', bgImageUrl, err);
+          ctx.fillStyle = '#f3f4f6';
+          ctx.fillRect(0, 0, width, h);
+        }
+
+        // 2. Photo slot — rect clip, optional rotation, cover-fill
+        if (userPhotoUrl && cert.photo) {
+          try {
+            const photo = await loadImage(userPhotoUrl);
+            const rx = cert.photo.x * scale;
+            const ry = cert.photo.y * scale;
+            const rw = cert.photo.w * scale;
+            const rh = cert.photo.h * scale;
+            const angle = (cert.photo.angle ?? 0) * (Math.PI / 180);
+
+            ctx.save();
+            if (angle) {
+              ctx.translate(rx + rw / 2, ry + rh / 2);
+              ctx.rotate(angle);
+              ctx.translate(-(rx + rw / 2), -(ry + rh / 2));
+            }
+            ctx.beginPath();
+            ctx.rect(rx, ry, rw, rh);
+            ctx.clip();
+            const s  = Math.max(rw / photo.width, rh / photo.height);
+            const pw = photo.width * s;
+            const ph = photo.height * s;
+            ctx.drawImage(photo, rx + (rw - pw) / 2, ry + (rh - ph) / 2, pw, ph);
+            ctx.restore();
+          } catch { /* skip photo */ }
+        }
+
+        // 3. Name — measure-and-shrink to fit maxW
+        if (userName && cert.name) {
+          const fontMontserrat = getComputedStyle(document.documentElement)
+            .getPropertyValue('--font-montserrat') || 'Montserrat';
+          const n = cert.name;
+          const nameX = n.x * scale;
+          const nameY = n.y * scale;
+          const maxW  = n.maxW * scale;
+          let fs = n.fontSize * scale;
+
+          ctx.shadowColor  = 'transparent';
+          ctx.shadowBlur   = 0;
+          ctx.textAlign    = n.align;
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle    = n.color || '#1a2744';
+          ctx.font         = `700 ${fs}px ${fontMontserrat}, sans-serif`;
+
+          const measured = ctx.measureText(userName).width;
+          if (maxW > 0 && measured > maxW) {
+            fs = Math.max(14 * scale, fs * (maxW / measured));
+            ctx.font = `700 ${fs}px ${fontMontserrat}, sans-serif`;
+          }
+          ctx.fillText(userName, nameX, nameY);
+        }
+
+        // 4. Overlay images (logos, sponsors) — aspect-preserving by width
+        if (cert.images && cert.images.length) {
+          for (const im of cert.images) {
+            if (!im.url) continue;
+            try {
+              const img = await loadImage(im.url);
+              const iw = im.w * scale;
+              const ih = (img.height / img.width) * iw;
+              ctx.drawImage(img, im.x * scale, im.y * scale, iw, ih);
+            } catch { /* skip this overlay */ }
+          }
+        }
+
+        return; // done with custom layout
+      }
 
       // ── WATER PLEDGE LAYOUT ──────────────────────────────────────────────
       if (layout === 'water') {
@@ -441,7 +550,7 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
         } catch { /* skip if logo fails */ }
       }
 
-    }, [userName, bgImageUrl, userPhotoUrl, width, orgLogoUrl, logoPosition, layout, tuning]);
+    }, [userName, bgImageUrl, userPhotoUrl, width, orgLogoUrl, logoPosition, layout, tuning, cert]);
 
     useEffect(() => { draw(); }, [draw]);
 

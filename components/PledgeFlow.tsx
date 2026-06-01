@@ -3,6 +3,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import type { Area } from 'react-easy-crop';
 import { Pledge, PledgeCommitment } from '@prisma/client';
 import { PledgePosterCanvas } from './PledgePosterCanvas';
+import type { CertConfig } from './PledgePosterCanvas';
 import { downloadPoster, sharePoster } from '@/utils/downloadPoster';
 import { Check, Loader2, Camera, ArrowLeft, Edit2, X, RefreshCw } from 'lucide-react';
 import Cropper from 'react-easy-crop';
@@ -13,7 +14,19 @@ import { isCertificateOnly } from '@/lib/pledgeMode';
 type PledgeWithCommitments = Pledge & { commitments: PledgeCommitment[] };
 type PledgeStep = 'details' | 'preview' | 'commitments' | 'success';
 
-function getPledgeLayout(slug: string): string {
+function parseCert(raw: string | null | undefined): CertConfig | null {
+  if (!raw) return null;
+  try {
+    const c = JSON.parse(raw) as CertConfig;
+    if (c && (c.name || c.photo || (c.images && c.images.length))) return c;
+  } catch { /* ignore malformed */ }
+  return null;
+}
+
+// Admin-defined custom layout wins over baked-in slug layouts.
+function getPledgeLayout(pledge: PledgeWithCommitments): string {
+  if (parseCert(pledge.certConfig)) return 'custom';
+  const slug = pledge.slug;
   if (slug.startsWith('water-')) return 'water';
   if (slug === 'house-sparrow') return 'sparrow';
   if (slug === 'wooden-earbuds') return 'earbuds';
@@ -461,7 +474,8 @@ function PledgePreview({ userData, pledge, onBack, onConfirm }: { userData: User
           bgImageUrl={pledge.bgImageUrl}
           userPhotoUrl={userData.photoUrl}
           width={800} // higher res for better anti-aliasing in preview
-          layout={getPledgeLayout(pledge.slug)}
+          layout={getPledgeLayout(pledge)}
+          cert={parseCert(pledge.certConfig)}
         />
       </div>
 
@@ -715,7 +729,8 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
     if (canvasRef.current) sharePoster(canvasRef.current, cert.fullName, window.location.href);
   };
 
-  const layout = getPledgeLayout(pledge.slug);
+  const layout = getPledgeLayout(pledge);
+  const certLayout = parseCert(pledge.certConfig);
   const certOnly = isCertificateOnly(pledge.slug);
   const heading  = certOnly ? 'Your Certificate is Ready!' : 'Pledge Taken!';
   const subtitle = certOnly
@@ -752,6 +767,7 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
             userPhotoUrl={cert.photoUrl}
             width={1080}
             layout={layout}
+            cert={certLayout}
           />
         </div>
 
@@ -764,6 +780,7 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
             userPhotoUrl={cert.photoUrl}
             width={800}
             layout={layout}
+            cert={certLayout}
           />
         </div>
 
