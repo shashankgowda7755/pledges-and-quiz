@@ -30,6 +30,7 @@ export default function AddPledgeForm({ events = [] }: { events?: EventOption[] 
     impactMetric: 'bottles_saved',
     impactPerUnit: '1',
     eventId: '',
+    isCertificateOnly: false,
   });
 
   const [cert, setCert] = useState<CertConfig>({ name: null, photo: null, images: [] });
@@ -126,6 +127,19 @@ export default function AddPledgeForm({ events = [] }: { events?: EventOption[] 
             {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
           </select>
         </div>
+
+        <label className="flex items-start gap-3 bg-teal-50/50 border border-teal-100 rounded-xl p-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.isCertificateOnly}
+            onChange={e => setForm(f => ({ ...f, isCertificateOnly: e.target.checked }))}
+            className="w-4 h-4 mt-0.5 accent-teal-500"
+          />
+          <span>
+            <span className="block text-sm font-bold text-gray-800">Certificate-only mode</span>
+            <span className="block text-xs text-gray-500 mt-0.5">Lists this under the public <strong>Certificates</strong> page and hides pledge framing — no commitment counter, &ldquo;Get Certificate&rdquo; wording instead of &ldquo;Take Pledge&rdquo;.</span>
+          </span>
+        </label>
       </div>
 
       <div className="space-y-6 pt-4 border-t border-gray-100">

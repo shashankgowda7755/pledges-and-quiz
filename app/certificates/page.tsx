@@ -13,8 +13,11 @@ export const metadata = {
 export default async function CertificatesPage() {
   const events = await prisma.pledge.findMany({
     where: {
-      slug: { in: [...CERTIFICATE_ONLY_SLUG_LIST] },
       isActive: true,
+      OR: [
+        { isCertificateOnly: true },
+        { slug: { in: [...CERTIFICATE_ONLY_SLUG_LIST] } }, // legacy fallback
+      ],
     },
     orderBy: [{ eventDate: 'desc' }, { createdAt: 'desc' }],
   });

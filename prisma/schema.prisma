@@ -54,6 +54,7 @@ model Pledge {
   category      String               // environment | health | social | lifestyle
   bgImageUrl    String               // poster background image (1080x1350)
   certConfig    String?              // JSON: custom certificate layout (name box, photo slot, overlay images) in 1080x1350 space
+  isCertificateOnly Boolean          @default(false) // true = shows in /certificates, skips pledge framing (no counter, "Get Certificate" wording)
   impactMetric  String               // "bottles_saved" | "trees_planted" etc.
   impactPerUnit Float
   isActive      Boolean              @default(true)

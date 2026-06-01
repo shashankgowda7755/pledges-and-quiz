@@ -28,7 +28,7 @@ export default async function PledgeLandingPage(context: { params: Promise<{ slu
 
   if (!pledge) notFound();
 
-  const certOnly = isCertificateOnly(pledge.slug);
+  const certOnly = isCertificateOnly(pledge);
   const ctaLabel = certOnly ? 'Get My Certificate' : 'Take This Pledge';
 
   return (

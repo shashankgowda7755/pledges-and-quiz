@@ -10,6 +10,7 @@ const WATER_PLEDGE = {
   category: 'environment',
   bgImageUrl: '/images/pledges/rain water.png',
   certConfig: null,
+  isCertificateOnly: false,
   impactMetric: 'litres_saved',
   impactPerUnit: 50,
   isActive: true,

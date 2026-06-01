@@ -10,7 +10,7 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   const pledge = await prisma.pledge.findUnique({ where: { slug } });
   if (!pledge) return {};
 
-  const prefix = isCertificateOnly(pledge.slug) ? 'Get Your Certificate' : 'Take Pledge';
+  const prefix = isCertificateOnly(pledge) ? 'Get Your Certificate' : 'Take Pledge';
   return {
     title: `${prefix}: ${pledge.name} | Communitree & EZONE`,
   };

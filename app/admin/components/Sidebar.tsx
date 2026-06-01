@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, HeartHandshake, CheckSquare, LayoutDashboard, Users, CalendarDays } from 'lucide-react';
+import { Building2, HeartHandshake, CheckSquare, LayoutDashboard, Users, CalendarDays, Award } from 'lucide-react';
 import LogoutButton from '../orgs/LogoutButton';
 
 export default function Sidebar() {
@@ -14,6 +14,7 @@ export default function Sidebar() {
     { name: 'Organizations', href: '/admin/orgs', icon: Building2 },
     { name: 'Pledges', href: '/admin/pledges', icon: HeartHandshake },
     { name: 'Quizzes', href: '/admin/quizzes', icon: CheckSquare },
+    { name: 'Certificates', href: '/admin/certificates', icon: Award },
     { name: 'Submissions', href: '/admin/submissions', icon: Users },
   ];
 

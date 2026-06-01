@@ -731,7 +731,7 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
 
   const layout = getPledgeLayout(pledge);
   const certLayout = parseCert(pledge.certConfig);
-  const certOnly = isCertificateOnly(pledge.slug);
+  const certOnly = isCertificateOnly(pledge);
   const heading  = certOnly ? 'Your Certificate is Ready!' : 'Pledge Taken!';
   const subtitle = certOnly
     ? `Thank you for joining ${pledge.name} — here's your certificate.`
