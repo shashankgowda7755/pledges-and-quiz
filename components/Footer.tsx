@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 
+const LOGO_FILTER = 'brightness(0) saturate(100%) invert(20%) sepia(34%) saturate(1200%) hue-rotate(100deg) brightness(94%)';
+
 export function Footer() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
@@ -23,54 +25,70 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 py-16 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-2">
-            <h3 className="font-montserrat font-bold text-xl text-gray-900 mb-4">Stay updated on next month&apos;s special days.</h3>
+    <footer className="bg-cream-soft border-t border-[color:var(--line)] mt-auto">
+      <div className="container-page py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-14">
+          {/* Newsletter */}
+          <div className="lg:col-span-2 max-w-xl">
+            <h3 className="font-montserrat font-bold text-2xl text-ink mb-2">Grow with us.</h3>
+            <p className="text-[color:var(--muted)] mb-5">Get a monthly note on upcoming drives, new pledges, and the forests we&apos;re growing together.</p>
             {status === 'done' ? (
-              <p className="text-teal-600 font-medium">You&apos;re subscribed!</p>
+              <p className="text-forest font-semibold">🌱 You&apos;re in. Welcome to the community!</p>
             ) : (
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md">
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="Email address"
-                  className="flex-1 border border-gray-300 rounded-lg px-4 py-3 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-100"
+                  placeholder="you@email.com"
+                  className="flex-1 bg-white border border-[color:var(--line)] rounded-full px-5 py-3 focus:border-leaf focus:outline-none focus:ring-4 focus:ring-leaf/15"
                 />
                 <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="bg-gray-900 text-white rounded-lg px-6 py-3 font-medium hover:bg-gray-800 transition-colors disabled:opacity-60"
+                  className="rounded-full bg-forest text-white px-7 py-3 font-semibold hover:bg-forest-700 transition-colors disabled:opacity-60"
                 >
-                  {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+                  {status === 'loading' ? 'Joining…' : 'Subscribe'}
                 </button>
               </form>
             )}
-            {status === 'error' && <p className="text-red-500 text-sm mt-2">Something went wrong. Try again.</p>}
-            <p className="text-gray-500 text-sm mt-3">Monthly digest. Unsubscribe anytime.</p>
+            {status === 'error' && <p className="text-red-500 text-sm mt-2">Something went wrong. Please try again.</p>}
+            <p className="text-[color:var(--muted)] text-sm mt-3">Monthly digest. Unsubscribe anytime.</p>
           </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Legal</h4>
-            <ul className="space-y-3">
-              <li><Link href="/privacy" className="text-gray-600 hover:text-gray-900">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-gray-600 hover:text-gray-900">Terms</Link></li>
-              <li><a href="mailto:hello@pledgemarks.com" className="text-gray-600 hover:text-gray-900">hello@pledgemarks.com</a></li>
-            </ul>
+
+          {/* Explore + Connect */}
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <h4 className="font-semibold text-ink mb-4">Explore</h4>
+              <ul className="space-y-3 text-[15px]">
+                <li><Link href="/pledges" className="text-[color:var(--muted)] hover:text-forest">Pledges</Link></li>
+                <li><Link href="/quiz" className="text-[color:var(--muted)] hover:text-forest">Quizzes</Link></li>
+                <li><Link href="/certificates" className="text-[color:var(--muted)] hover:text-forest">Certificates</Link></li>
+                <li><Link href="/calendar" className="text-[color:var(--muted)] hover:text-forest">Calendar</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-ink mb-4">Connect</h4>
+              <ul className="space-y-3 text-[15px]">
+                <li><Link href="/organizations" className="text-[color:var(--muted)] hover:text-forest">Partner with us</Link></li>
+                <li><Link href="/organizations" className="text-[color:var(--muted)] hover:text-forest">For organizations</Link></li>
+              </ul>
+            </div>
           </div>
         </div>
-        <div className="pt-8 border-t border-gray-200 text-center text-gray-500">
-          <div className="flex justify-center items-end gap-4 mb-3">
+
+        <div className="pt-8 border-t border-[color:var(--line)] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-end gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 36, width: 'auto', display: 'block', filter: 'brightness(0) invert(0.5) sepia(1) hue-rotate(110deg) saturate(5) brightness(0.55)' }} />
-            <span className="text-gray-300 text-xl font-light leading-none mb-1">&amp;</span>
+            <img src="/images/communitree-logo.png" alt="COMMUNITREE" style={{ height: 32, width: 'auto', display: 'block', filter: LOGO_FILTER }} />
+            <span className="text-[color:var(--muted)] text-lg font-light leading-none mb-1">&amp;</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/ezone-logo.png" alt="EZONE" style={{ height: 28, width: 'auto', display: 'block' }} />
+            <img src="/images/ezone-logo.png" alt="EZONE" style={{ height: 26, width: 'auto', display: 'block' }} />
           </div>
-          <p className="font-medium text-gray-900 mb-1">COMMUNITREE &amp; EZONE — Turn Intention into Action.</p>
-          <p>© {new Date().getFullYear()} COMMUNITREE &amp; EZONE.</p>
+          <p className="text-[color:var(--muted)] text-sm text-center sm:text-right">
+            Small acts. Living forests. · © {new Date().getFullYear()} COMMUNITREE &amp; EZONE
+          </p>
         </div>
       </div>
     </footer>

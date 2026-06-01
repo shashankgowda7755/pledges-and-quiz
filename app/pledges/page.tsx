@@ -23,15 +23,19 @@ export default async function PledgesPage({
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-16 w-full">
-        <h1 className="text-4xl md:text-5xl font-montserrat font-bold text-gray-900 mb-8">Active Pledges</h1>
+      <main className="flex-1 container-page py-16 w-full">
+        <span className="eyebrow mb-3">Choose your promise</span>
+        <h1 className="text-4xl md:text-5xl font-montserrat font-bold text-ink mb-3">Pledges</h1>
+        <p className="text-lg text-[color:var(--muted)] max-w-2xl mb-10">
+          Pick a cause, make your commitment, and download a certificate you can be proud to share.
+        </p>
 
-        <div className="flex gap-3 mb-12 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-3 mb-12 overflow-x-auto pb-2">
           <Link
             href="/pledges"
-            className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${!activeCategory ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${!activeCategory ? 'bg-forest text-white' : 'bg-white border border-[color:var(--line)] text-[color:var(--muted)] hover:border-forest/30'}`}
           >
             All
           </Link>
@@ -39,38 +43,36 @@ export default async function PledgesPage({
             <Link
               key={cat}
               href={`/pledges?category=${cat.toLowerCase()}`}
-              className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+              className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-forest text-white' : 'bg-white border border-[color:var(--line)] text-[color:var(--muted)] hover:border-forest/30'}`}
             >
               {cat}
             </Link>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
           {pledges.map(p => (
-            <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
-              <div className="h-48 overflow-hidden relative bg-gray-100">
+            <div key={p.id} className="card card-hover overflow-hidden flex flex-col group">
+              <div className="h-48 overflow-hidden relative bg-[#eef6ef]">
                 {p.bgImageUrl && <img src={p.bgImageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-800 uppercase tracking-wide">
-                  {p.category}
-                </div>
+                <span className="absolute top-4 left-4 chip bg-white/90 backdrop-blur">{p.category}</span>
                 {p.eventDate && (
-                  <div className="absolute bottom-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                  <div className="absolute bottom-4 right-4 bg-amber-sun text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                     {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(p.eventDate))}
                   </div>
                 )}
               </div>
               <div className="p-6 flex flex-col flex-1">
-                <h3 className="text-xl font-bold font-montserrat text-gray-900 mb-2">{p.name}</h3>
-                <p className="text-gray-600 text-sm mb-6 flex-1">{p.description}</p>
-                <Link href={`/pledges/${p.slug}`} className="text-teal-600 font-semibold inline-flex items-center group-hover:text-teal-700">
-                  Take This Pledge <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+                <h3 className="text-xl font-bold font-montserrat text-ink mb-2">{p.name}</h3>
+                <p className="text-[color:var(--muted)] text-sm mb-6 flex-1 leading-relaxed">{p.description}</p>
+                <Link href={`/pledges/${p.slug}`} className="link-arrow group/cta">
+                  Take this pledge <span className="group-hover/cta:translate-x-1 transition-transform">→</span>
                 </Link>
               </div>
             </div>
           ))}
           {pledges.length === 0 && (
-            <p className="text-gray-500 col-span-3 py-12 text-center">No pledges found in this category.</p>
+            <p className="text-[color:var(--muted)] col-span-3 py-12 text-center">No pledges in this category yet. Check back soon!</p>
           )}
         </div>
       </main>
