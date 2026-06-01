@@ -40,7 +40,8 @@ export interface CertPhotoBox {
   y: number;
   w: number;
   h: number;
-  angle?: number;       // degrees
+  angle?: number;             // degrees
+  shape?: 'rect' | 'circle';  // circle clips to an ellipse inside the box (default rect)
 }
 export interface CertImage {
   url: string;
@@ -133,7 +134,11 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
               ctx.translate(-(rx + rw / 2), -(ry + rh / 2));
             }
             ctx.beginPath();
-            ctx.rect(rx, ry, rw, rh);
+            if (cert.photo.shape === 'circle') {
+              ctx.ellipse(rx + rw / 2, ry + rh / 2, rw / 2, rh / 2, 0, 0, Math.PI * 2);
+            } else {
+              ctx.rect(rx, ry, rw, rh);
+            }
             ctx.clip();
             const s  = Math.max(rw / photo.width, rh / photo.height);
             const pw = photo.width * s;

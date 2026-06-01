@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Pencil } from 'lucide-react';
 import DeletePledgeButton from '../pledges/DeletePledgeButton';
 import { CERTIFICATE_ONLY_SLUG_LIST } from '@/lib/pledgeMode';
 
@@ -75,6 +75,9 @@ export default async function AdminCertificatesPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="inline-flex items-center gap-3">
+                        <Link href={`/admin/certificates/${c.slug}/edit`} className="text-gray-400 hover:text-teal-600" title="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </Link>
                         <a href={`/pledges/${c.slug}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-teal-600" title="View public page">
                           <ExternalLink className="w-4 h-4" />
                         </a>

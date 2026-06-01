@@ -82,7 +82,12 @@ export default function CertificateDesigner({
       } else if (drag.kind === 'photo-move' && snapPhoto) {
         onChange({ ...value, photo: { ...snapPhoto, x: clamp(snapPhoto.x + dx, 0, RW - snapPhoto.w), y: clamp(snapPhoto.y + dy, 0, RH - snapPhoto.h) } });
       } else if (drag.kind === 'photo-resize' && snapPhoto) {
-        onChange({ ...value, photo: { ...snapPhoto, w: clamp(snapPhoto.w + dx, 60, RW - snapPhoto.x), h: clamp(snapPhoto.h + dy, 60, RH - snapPhoto.y) } });
+        if (snapPhoto.shape === 'circle') {
+          const d = clamp(snapPhoto.w + dx, 60, Math.min(RW - snapPhoto.x, RH - snapPhoto.y));
+          onChange({ ...value, photo: { ...snapPhoto, w: d, h: d } });
+        } else {
+          onChange({ ...value, photo: { ...snapPhoto, w: clamp(snapPhoto.w + dx, 60, RW - snapPhoto.x), h: clamp(snapPhoto.h + dy, 60, RH - snapPhoto.y) } });
+        }
       } else if (drag.kind === 'image-move') {
         const i = drag.index;
         const next = snapImages.map((im, k) => k === i ? { ...im, x: clamp(im.x + dx, 0, RW), y: clamp(im.y + dy, 0, RH) } : im);
@@ -158,7 +163,7 @@ export default function CertificateDesigner({
             {/* Photo box */}
             {photo && (
               <div style={{ position: 'absolute', ...pctBox(photo.x, photo.y, photo.w, photo.h), cursor: 'move' }} onMouseDown={(e) => startDrag(e, { kind: 'photo-move' })}>
-                <div className="absolute inset-0 bg-blue-400/20 border-2 border-blue-500 rounded flex items-center justify-center">
+                <div className={`absolute inset-0 bg-blue-400/20 border-2 border-blue-500 flex items-center justify-center ${photo.shape === 'circle' ? 'rounded-full' : 'rounded'}`}>
                   <User className="w-6 h-6 text-blue-600" />
                 </div>
                 <Handle color="#3b82f6" onMouseDown={(e) => startDrag(e, { kind: 'photo-resize' })} />
@@ -246,9 +251,30 @@ export default function CertificateDesigner({
           </label>
           {photo && (
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <Field label="Width"><input type="number" min={60} value={photo.w} onChange={(e) => patchPhoto({ w: Number(e.target.value) })} className={inputCls} /></Field>
-              <Field label="Height"><input type="number" min={60} value={photo.h} onChange={(e) => patchPhoto({ h: Number(e.target.value) })} className={inputCls} /></Field>
-              <Field label="Rotation°"><input type="number" min={-45} max={45} value={photo.angle ?? 0} onChange={(e) => patchPhoto({ angle: Number(e.target.value) })} className={inputCls} /></Field>
+              <Field label="Shape">
+                <select
+                  value={photo.shape ?? 'rect'}
+                  onChange={(e) => {
+                    const shape = e.target.value as 'rect' | 'circle';
+                    // Circle = square box so it renders as a perfect circle.
+                    if (shape === 'circle') { const d = Math.min(photo.w, photo.h); patchPhoto({ shape, w: d, h: d, angle: 0 }); }
+                    else patchPhoto({ shape });
+                  }}
+                  className={inputCls}
+                >
+                  <option value="rect">Rectangle / Square</option>
+                  <option value="circle">Circle</option>
+                </select>
+              </Field>
+              <Field label="Rotation°">
+                <input type="number" min={-45} max={45} disabled={photo.shape === 'circle'} value={photo.angle ?? 0} onChange={(e) => patchPhoto({ angle: Number(e.target.value) })} className={inputCls} />
+              </Field>
+              <Field label={photo.shape === 'circle' ? 'Diameter' : 'Width'}>
+                <input type="number" min={60} value={photo.w} onChange={(e) => { const w = Number(e.target.value); patchPhoto(photo.shape === 'circle' ? { w, h: w } : { w }); }} className={inputCls} />
+              </Field>
+              <Field label="Height">
+                <input type="number" min={60} disabled={photo.shape === 'circle'} value={photo.h} onChange={(e) => patchPhoto({ h: Number(e.target.value) })} className={inputCls} />
+              </Field>
               <div className="col-span-2 text-[11px] text-gray-400 font-mono">x: {photo.x} · y: {photo.y}</div>
             </div>
           )}

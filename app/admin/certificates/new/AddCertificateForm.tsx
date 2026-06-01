@@ -15,23 +15,45 @@ function slugify(str: string) {
 
 type EventOption = { id: string; title: string };
 
-export default function AddCertificateForm({ events = [] }: { events?: EventOption[] }) {
+export type CertificateInitial = {
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  bgImageUrl: string;
+  eventDate: string | Date | null;
+  eventId: string | null;
+  certConfig: string | null;
+};
+
+function toDateInput(d: string | Date | null | undefined) {
+  if (!d) return '';
+  const date = new Date(d);
+  return isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+}
+
+export default function AddCertificateForm({ events = [], initialData }: { events?: EventOption[]; initialData?: CertificateInitial }) {
   const router = useRouter();
+  const isEdit = Boolean(initialData);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    category: 'environment',
-    bgImageUrl: '',
-    eventDate: '',
-    eventId: '',
+    name: initialData?.name ?? '',
+    slug: initialData?.slug ?? '',
+    description: initialData?.description ?? '',
+    category: initialData?.category ?? 'environment',
+    bgImageUrl: initialData?.bgImageUrl ?? '',
+    eventDate: toDateInput(initialData?.eventDate),
+    eventId: initialData?.eventId ?? '',
   });
 
-  const [cert, setCert] = useState<CertConfig>({ name: null, photo: null, images: [] });
+  const parsedCert = (() => {
+    if (!initialData?.certConfig) return { name: null, photo: null, images: [] } as CertConfig;
+    try { return JSON.parse(initialData.certConfig) as CertConfig; } catch { return { name: null, photo: null, images: [] } as CertConfig; }
+  })();
+  const [cert, setCert] = useState<CertConfig>(parsedCert);
   const certConfigured = !!(cert.name || cert.photo || (cert.images && cert.images.length));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,27 +61,29 @@ export default function AddCertificateForm({ events = [] }: { events?: EventOpti
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/pledges', {
-        method: 'POST',
+      const payload = {
+        name: form.name,
+        slug: form.slug,
+        description: form.description,
+        category: form.category,
+        bgImageUrl: form.bgImageUrl,
+        eventId: form.eventId || null,
+        eventDate: form.eventDate || null,
+        // Certificate = certificate-only pledge. No pledge framing, no commitments.
+        isCertificateOnly: true,
+        impactMetric: 'certificate_issued',
+        impactPerUnit: 1,
+        commitments: [],
+        certConfig: certConfigured ? JSON.stringify(cert) : null,
+      };
+      const url = isEdit ? `/api/admin/pledges/${initialData!.slug}` : '/api/admin/pledges';
+      const res = await fetch(url, {
+        method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          slug: form.slug,
-          description: form.description,
-          category: form.category,
-          bgImageUrl: form.bgImageUrl,
-          eventId: form.eventId || null,
-          eventDate: form.eventDate || null,
-          // Certificate = certificate-only pledge. No pledge framing, no commitments.
-          isCertificateOnly: true,
-          impactMetric: 'certificate_issued',
-          impactPerUnit: 1,
-          commitments: [],
-          certConfig: certConfigured ? JSON.stringify(cert) : null,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to create certificate');
+      if (!res.ok) throw new Error(data.error ?? `Failed to ${isEdit ? 'update' : 'create'} certificate`);
 
       router.push('/admin/certificates');
       router.refresh();
@@ -81,11 +105,11 @@ export default function AddCertificateForm({ events = [] }: { events?: EventOpti
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className={label}>Certificate Title *</label>
-            <input type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: slugify(e.target.value) }))} className={input} placeholder="e.g. Jungle Adventure Kids Summer Camp 2026" />
+            <input type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: isEdit ? f.slug : slugify(e.target.value) }))} className={input} placeholder="e.g. Jungle Adventure Kids Summer Camp 2026" />
           </div>
           <div>
-            <label className={label}>Slug *</label>
-            <input type="text" required value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className={`${input} font-mono`} placeholder="jungle-adventure-2026" />
+            <label className={label}>Slug * {isEdit && <span className="font-normal text-gray-400 normal-case">(locked)</span>}</label>
+            <input type="text" required readOnly={isEdit} value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className={`${input} font-mono ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`} placeholder="jungle-adventure-2026" />
           </div>
         </div>
 
@@ -135,7 +159,7 @@ export default function AddCertificateForm({ events = [] }: { events?: EventOpti
 
       <div className="pt-6 flex justify-end">
         <button type="submit" disabled={loading} className="px-8 py-3.5 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 disabled:opacity-50 transition-all shadow-md shadow-teal-500/20 text-[15px]">
-          {loading ? 'Creating…' : 'Publish Certificate'}
+          {loading ? 'Saving…' : isEdit ? 'Save Changes' : 'Publish Certificate'}
         </button>
       </div>
     </form>
