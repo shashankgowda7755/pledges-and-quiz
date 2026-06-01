@@ -15,36 +15,57 @@ function slugify(str: string) {
 }
 
 type EventOption = { id: string; title: string };
+type QuizQuestion = { text: string; options: { text: string; isCorrect: boolean }[] };
 
-export default function AddQuizForm({ events = [] }: { events?: EventOption[] }) {
+export type QuizInitial = {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  bgImageUrl: string;
+  eventId: string | null;
+  certConfig: string | null;
+  questions: QuizQuestion[];
+};
+
+export default function AddQuizForm({ events = [], initialData }: { events?: EventOption[]; initialData?: QuizInitial }) {
   const router = useRouter();
+  const isEdit = Boolean(initialData);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
-    title: '',
-    slug: '',
-    description: '',
-    category: 'environment',
-    bgImageUrl: '',
-    eventId: '',
+    title: initialData?.title ?? '',
+    slug: initialData?.slug ?? '',
+    description: initialData?.description ?? '',
+    category: initialData?.category ?? 'environment',
+    bgImageUrl: initialData?.bgImageUrl ?? '',
+    eventId: initialData?.eventId ?? '',
   });
 
-  const [cert, setCert] = useState<CertConfig>({ name: null, photo: null, images: [] });
+  const parsedCert = (() => {
+    if (!initialData?.certConfig) return { name: null, photo: null, images: [] } as CertConfig;
+    try { return JSON.parse(initialData.certConfig) as CertConfig; } catch { return { name: null, photo: null, images: [] } as CertConfig; }
+  })();
+  const [cert, setCert] = useState<CertConfig>(parsedCert);
   const certEnabled = !!(cert.name || cert.photo || (cert.images && cert.images.length));
 
-  const [questions, setQuestions] = useState([
-    {
-      text: '',
-      options: [
-        { text: '', isCorrect: true },
-        { text: '', isCorrect: false },
-        { text: '', isCorrect: false },
-        { text: '', isCorrect: false },
-      ]
-    }
-  ]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>(
+    initialData?.questions?.length
+      ? initialData.questions
+      : [
+          {
+            text: '',
+            options: [
+              { text: '', isCorrect: true },
+              { text: '', isCorrect: false },
+              { text: '', isCorrect: false },
+              { text: '', isCorrect: false },
+            ],
+          },
+        ]
+  );
 
   const addQuestion = () => {
     setQuestions([
@@ -99,8 +120,9 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
 
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/quizzes', {
-        method: 'POST',
+      const url = isEdit ? `/api/admin/quizzes/${initialData!.slug}` : '/api/admin/quizzes';
+      const res = await fetch(url, {
+        method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
@@ -109,7 +131,7 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to create quiz');
+      if (!res.ok) throw new Error(data.error ?? `Failed to ${isEdit ? 'update' : 'create'} quiz`);
 
       router.push('/admin/quizzes');
       router.refresh();
@@ -129,11 +151,11 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Quiz Title *</label>
-            <input type="text" required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value, slug: slugify(e.target.value) }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900" placeholder="Birds of Bengaluru" />
+            <input type="text" required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value, slug: isEdit ? f.slug : slugify(e.target.value) }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900" placeholder="Birds of Bengaluru" />
           </div>
           <div>
             <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Slug *</label>
-            <input type="text" required value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 font-mono text-gray-900" placeholder="birds-of-bengaluru" />
+            <input type="text" required readOnly={isEdit} value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 font-mono text-gray-900 ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`} placeholder="birds-of-bengaluru" />
           </div>
         </div>
 
@@ -251,7 +273,7 @@ export default function AddQuizForm({ events = [] }: { events?: EventOption[] })
           disabled={loading}
           className="px-8 py-3.5 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 disabled:opacity-50 transition-all shadow-md shadow-teal-500/20 text-[15px]"
         >
-          {loading ? 'Creating...' : 'Publish Quiz'}
+          {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Publish Quiz'}
         </button>
       </div>
     </form>

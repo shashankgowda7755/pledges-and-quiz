@@ -21,6 +21,17 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ slug:
     if (body.eventId !== undefined) data.eventId = body.eventId || null;
     if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
 
+    // Replace commitments wholesale if provided.
+    if (Array.isArray(body.commitments)) {
+      const existing = await prisma.pledge.findUnique({ where: { slug }, select: { id: true } });
+      if (existing) {
+        await prisma.pledgeCommitment.deleteMany({ where: { pledgeId: existing.id } });
+        data.commitments = {
+          create: (body.commitments as string[]).map((text, i) => ({ text, order: i + 1 })),
+        };
+      }
+    }
+
     const updated = await prisma.pledge.update({ where: { slug }, data });
     return NextResponse.json({ ok: true, pledge: updated });
   } catch (error) {

@@ -15,27 +15,50 @@ function slugify(str: string) {
 
 type EventOption = { id: string; title: string };
 
-export default function AddPledgeForm({ events = [] }: { events?: EventOption[] }) {
+export type PledgeInitial = {
+  slug: string;
+  name: string;
+  description: string;
+  category: string;
+  bgImageUrl: string;
+  impactMetric: string;
+  impactPerUnit: number;
+  eventId: string | null;
+  certConfig: string | null;
+  commitments: string[];
+};
+
+export default function AddPledgeForm({ events = [], initialData }: { events?: EventOption[]; initialData?: PledgeInitial }) {
   const router = useRouter();
+  const isEdit = Boolean(initialData);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [form, setForm] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    category: 'environment',
-    bgImageUrl: '',
-    impactMetric: 'bottles_saved',
-    impactPerUnit: '1',
-    eventId: '',
+    name: initialData?.name ?? '',
+    slug: initialData?.slug ?? '',
+    description: initialData?.description ?? '',
+    category: initialData?.category ?? 'environment',
+    bgImageUrl: initialData?.bgImageUrl ?? '',
+    impactMetric: initialData?.impactMetric ?? 'bottles_saved',
+    impactPerUnit: String(initialData?.impactPerUnit ?? '1'),
+    eventId: initialData?.eventId ?? '',
   });
 
-  const [cert, setCert] = useState<CertConfig>({ name: null, photo: null, images: [] });
+  const parsedCert = (() => {
+    if (!initialData?.certConfig) return { name: null, photo: null, images: [] } as CertConfig;
+    try { return JSON.parse(initialData.certConfig) as CertConfig; } catch { return { name: null, photo: null, images: [] } as CertConfig; }
+  })();
+  const [cert, setCert] = useState<CertConfig>(parsedCert);
   const certEnabled = !!(cert.name || cert.photo || (cert.images && cert.images.length));
 
-  const [commitments, setCommitments] = useState<string[]>(Array(10).fill(''));
+  // Prefill commitments padded to at least 10 rows.
+  const initCommitments = (() => {
+    const base = initialData?.commitments ?? [];
+    return base.length >= 10 ? base : [...base, ...Array(10 - base.length).fill('')];
+  })();
+  const [commitments, setCommitments] = useState<string[]>(initCommitments);
 
   const handleCommitmentChange = (index: number, value: string) => {
     const newArr = [...commitments];
@@ -46,7 +69,7 @@ export default function AddPledgeForm({ events = [] }: { events?: EventOption[] 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     const validCommitments = commitments.filter(c => c.trim().length > 0);
     if (validCommitments.length === 0) {
       setError('You must provide at least one commitment.');
@@ -55,8 +78,9 @@ export default function AddPledgeForm({ events = [] }: { events?: EventOption[] 
 
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/pledges', {
-        method: 'POST',
+      const url = isEdit ? `/api/admin/pledges/${initialData!.slug}` : '/api/admin/pledges';
+      const res = await fetch(url, {
+        method: isEdit ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
@@ -66,8 +90,8 @@ export default function AddPledgeForm({ events = [] }: { events?: EventOption[] 
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to create pledge');
-      
+      if (!res.ok) throw new Error(data.error ?? `Failed to ${isEdit ? 'update' : 'create'} pledge`);
+
       router.push('/admin/pledges');
       router.refresh();
     } catch (err) {
@@ -86,11 +110,11 @@ export default function AddPledgeForm({ events = [] }: { events?: EventOption[] 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Pledge Title *</label>
-            <input type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: slugify(e.target.value) }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900" placeholder="e.g. Save The Oceans" />
+            <input type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value, slug: isEdit ? f.slug : slugify(e.target.value) }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900" placeholder="e.g. Save The Oceans" />
           </div>
           <div>
             <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Slug *</label>
-            <input type="text" required value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-mono text-gray-900" placeholder="save-the-oceans" />
+            <input type="text" required readOnly={isEdit} value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} className={`w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-mono text-gray-900 ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`} placeholder="save-the-oceans" />
           </div>
         </div>
 
@@ -162,7 +186,7 @@ export default function AddPledgeForm({ events = [] }: { events?: EventOption[] 
 
       <div className="pt-6 flex justify-end">
         <button type="submit" disabled={loading} className="px-8 py-3.5 rounded-xl bg-teal-500 text-white font-bold hover:bg-teal-600 disabled:opacity-50 transition-all shadow-md shadow-teal-500/20 text-[15px]">
-          {loading ? 'Creating...' : 'Launch Pledge'}
+          {loading ? 'Saving...' : isEdit ? 'Save Changes' : 'Launch Pledge'}
         </button>
       </div>
     </form>
