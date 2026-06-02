@@ -10,7 +10,7 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   if (!quiz) return {};
 
   return {
-    title: `Take Quiz: ${quiz.title} | Communitree & EZONE`,
+    title: `Take Quiz: ${quiz.title} | COMMUNITREE & EZONE`,
   };
 }
 

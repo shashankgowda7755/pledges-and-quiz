@@ -23,7 +23,7 @@ export default async function AdminSubmissionsPage() {
       email: p.userEmail,
       whatsapp: p.whatsapp,
       activityName: p.pledge.name,
-      orgName: p.organization?.name || 'Communitree Direct',
+      orgName: p.organization?.name || 'COMMUNITREE Direct',
       date: p.createdAt,
       metadata: 'Agreed: ' + String(p.agreed)
     })),
@@ -34,7 +34,7 @@ export default async function AdminSubmissionsPage() {
       email: q.userEmail,
       whatsapp: q.whatsapp,
       activityName: q.quiz.title,
-      orgName: q.organization?.name || 'Communitree Direct',
+      orgName: q.organization?.name || 'COMMUNITREE Direct',
       date: q.createdAt,
       metadata: `Score: ${q.score}/${q.totalQuestions}`
     }))
@@ -61,7 +61,7 @@ export default async function AdminSubmissionsPage() {
                 <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Contact</th>
                 <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Type</th>
                 <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Activity</th>
-                <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Organization</th>
+                <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Organisation</th>
                 <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date</th>
                 <th className="text-right px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Meta</th>
               </tr>

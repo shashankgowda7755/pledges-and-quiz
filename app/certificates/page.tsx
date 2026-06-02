@@ -6,8 +6,8 @@ import prisma from '@/lib/prisma';
 import { CERTIFICATE_ONLY_SLUG_LIST } from '@/lib/pledgeMode';
 
 export const metadata = {
-  title: 'Certificates | Communitree & EZONE',
-  description: 'Branded event certificates from Communitree & EZONE — pick your event and download instantly.',
+  title: 'Certificates | COMMUNITREE & EZONE',
+  description: 'Branded event certificates from COMMUNITREE & EZONE — pick your event and download instantly.',
 };
 
 export default async function CertificatesPage() {

@@ -131,7 +131,7 @@ export default async function Home() {
         {/* Impact band */}
         <section id="stats" className="bg-forest text-white">
           <div className="container-page py-16">
-            <p className="text-center text-leaf-300 font-semibold uppercase tracking-[0.18em] text-xs mb-10">Our impact so far</p>
+            <p className="text-center text-leaf-300 font-semibold uppercase tracking-[0.18em] text-xs mb-10">Our community so far</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center divide-y md:divide-y-0 md:divide-x divide-white/10">
               <div className="pt-8 md:pt-0">
                 <div className="text-5xl font-montserrat font-extrabold mb-2"><CountUpClient end={totalPledges} /></div>
@@ -139,7 +139,7 @@ export default async function Home() {
               </div>
               <div className="pt-8 md:pt-0">
                 <div className="text-5xl font-montserrat font-extrabold mb-2"><CountUpClient end={totalOrgs} /></div>
-                <div className="text-white/60 font-medium uppercase tracking-widest text-xs">Partner Organizations</div>
+                <div className="text-white/60 font-medium uppercase tracking-widest text-xs">Partner Organisations</div>
               </div>
               <div className="pt-8 md:pt-0">
                 <div className="text-5xl font-montserrat font-extrabold mb-2"><CountUpClient end={totalQuizAttempts} /></div>

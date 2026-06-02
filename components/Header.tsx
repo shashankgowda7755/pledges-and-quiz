@@ -5,10 +5,11 @@ import { Menu, X } from 'lucide-react';
 
 const LINKS = [
   { href: '/pledges', label: 'Pledges' },
-  { href: '/certificates', label: 'Certificates' },
   { href: '/quiz', label: 'Quizzes' },
+  { href: '/certificates', label: 'Certificates' },
+  { href: '/events', label: 'Events' },
   { href: '/calendar', label: 'Calendar' },
-  { href: '/organizations', label: 'Organizations' },
+  { href: '/organizations', label: 'Organisations' },
 ];
 
 // COMMUNITREE wordmark recolour to forest green.

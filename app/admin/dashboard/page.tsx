@@ -35,7 +35,7 @@ export default async function AdminDashboardPage() {
     <div className="pb-16 animate-in fade-in duration-500">
       <div className="mb-10">
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard Overview</h1>
-        <p className="text-gray-500 text-sm mt-2">Welcome to the Communitree &amp; EZONE Admin Panel. Here is your global impact.</p>
+        <p className="text-gray-500 text-sm mt-2">Welcome to the COMMUNITREE &amp; EZONE Admin Panel. Here is your participation overview.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -54,11 +54,11 @@ export default async function AdminDashboardPage() {
 
       <div className="mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-teal-500"/> Real-world Impact Generated
+          <TrendingUp className="w-6 h-6 text-teal-500"/> Projected Impact <span className="text-xs font-medium text-gray-400 normal-case">(estimated from pledges — not yet measured)</span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {impactSummary.length === 0 && (
-            <p className="text-gray-400 italic">No impact recorded yet.</p>
+            <p className="text-gray-400 italic">No pledges yet.</p>
           )}
           {impactSummary.map(impact => (
             <div key={impact.metric} className="bg-teal-500 text-white rounded-[1.5rem] p-6 shadow-lg shadow-teal-500/20 relative overflow-hidden">

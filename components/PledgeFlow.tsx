@@ -763,7 +763,7 @@ function PledgeSuccess({ pledge, userData: initialUserData, onReturnHome }: { pl
   const heading  = certOnly ? 'Your Certificate is Ready!' : 'Pledge Taken!';
   const subtitle = certOnly
     ? `Thank you for joining ${pledge.name} — here's your certificate.`
-    : 'You have successfully pledged to honor the impact.';
+    : 'Your pledge has been recorded. Thank you for taking action.';
 
   return (
     <>

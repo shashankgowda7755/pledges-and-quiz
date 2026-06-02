@@ -68,6 +68,7 @@ export function Footer() {
                 <li><Link href="/pledges" className="text-[color:var(--muted)] hover:text-forest">Pledges</Link></li>
                 <li><Link href="/quiz" className="text-[color:var(--muted)] hover:text-forest">Quizzes</Link></li>
                 <li><Link href="/certificates" className="text-[color:var(--muted)] hover:text-forest">Certificates</Link></li>
+                <li><Link href="/events" className="text-[color:var(--muted)] hover:text-forest">Events</Link></li>
                 <li><Link href="/calendar" className="text-[color:var(--muted)] hover:text-forest">Calendar</Link></li>
               </ul>
             </div>

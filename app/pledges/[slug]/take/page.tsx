@@ -12,7 +12,7 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
 
   const prefix = isCertificateOnly(pledge) ? 'Get Your Certificate' : 'Take Pledge';
   return {
-    title: `${prefix}: ${pledge.name} | Communitree & EZONE`,
+    title: `${prefix}: ${pledge.name} | COMMUNITREE & EZONE`,
   };
 }
 

@@ -247,7 +247,7 @@ export default function AddQuizForm({ events = [], initialData }: { events?: Eve
                 value={q.text}
                 onChange={e => updateQuestionText(qIndex, e.target.value)}
                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-teal-400 outline-none font-bold text-gray-900 mb-4"
-                placeholder="What is the scientifically recognized lifespan of..."
+                placeholder="What is the scientifically recognised lifespan of..."
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 md:pl-0 border-l-2 md:border-l-0 border-teal-100">
