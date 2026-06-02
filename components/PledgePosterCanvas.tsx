@@ -49,10 +49,23 @@ export interface CertImage {
   y: number;
   w: number;            // height derived from natural aspect
 }
+export interface CertTextBox {
+  id: string;
+  text: string;
+  x: number;            // anchor x (meaning depends on align)
+  y: number;            // vertical center
+  fontSize: number;     // px at base
+  color: string;
+  align: 'left' | 'center' | 'right';
+  maxW: number;         // max text width before shrink-to-fit
+  weight?: 400 | 700;
+  italic?: boolean;
+}
 export interface CertConfig {
   name?:   CertNameBox | null;
   photo?:  CertPhotoBox | null;
   images?: CertImage[];
+  texts?:  CertTextBox[];
 }
 
 interface Props {
@@ -171,6 +184,35 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
             ctx.font = `700 ${fs}px ${fontMontserrat}, sans-serif`;
           }
           ctx.fillText(userName, nameX, nameY);
+        }
+
+        // 3b. Custom text blocks — same measure-and-shrink as the name
+        if (cert.texts && cert.texts.length) {
+          const fontMontserrat = getComputedStyle(document.documentElement)
+            .getPropertyValue('--font-montserrat') || 'Montserrat';
+          for (const t of cert.texts) {
+            if (!t.text) continue;
+            const tx = t.x * cscale;
+            const ty = t.y * cscale;
+            const maxW = t.maxW * cscale;
+            const weight = t.weight ?? 700;
+            const style = t.italic ? 'italic ' : '';
+            let fs = t.fontSize * cscale;
+
+            ctx.shadowColor  = 'transparent';
+            ctx.shadowBlur   = 0;
+            ctx.textAlign    = t.align;
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle    = t.color || '#1a2744';
+            ctx.font         = `${style}${weight} ${fs}px ${fontMontserrat}, sans-serif`;
+
+            const measured = ctx.measureText(t.text).width;
+            if (maxW > 0 && measured > maxW) {
+              fs = Math.max(14 * cscale, fs * (maxW / measured));
+              ctx.font = `${style}${weight} ${fs}px ${fontMontserrat}, sans-serif`;
+            }
+            ctx.fillText(t.text, tx, ty);
+          }
         }
 
         // 4. Overlay images (logos, sponsors) — aspect-preserving by width
@@ -578,15 +620,23 @@ export const PledgePosterCanvas = forwardRef<HTMLCanvasElement, Props>(
 );
 PledgePosterCanvas.displayName = 'PledgePosterCanvas';
 
-const loadImage = (src: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
+// Cache decoded images by URL so repeated redraws (e.g. live dragging in the
+// certificate designer) don't refetch/redecode the same bitmap each frame.
+const _imageCache = new Map<string, Promise<HTMLImageElement>>();
+const loadImage = (src: string): Promise<HTMLImageElement> => {
+  const cached = _imageCache.get(src);
+  if (cached) return cached;
+  const p = new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
     const isAbsoluteExternal = src.startsWith('http') && !src.startsWith(window.location.origin);
     if (isAbsoluteExternal) {
       img.crossOrigin = 'anonymous';
     }
     img.onload  = () => resolve(img);
-    img.onerror = (e) => reject(e);
+    img.onerror = (e) => { _imageCache.delete(src); reject(e); }; // allow retry on failure
     // Make relative URLs absolute so the canvas context can always resolve them
     img.src = src.startsWith('/') ? `${window.location.origin}${src}` : src;
   });
+  _imageCache.set(src, p);
+  return p;
+};
