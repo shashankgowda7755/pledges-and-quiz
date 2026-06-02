@@ -46,8 +46,9 @@ interface UserData {
 export function PledgeFlow({ pledge, orgId }: { pledge: PledgeWithCommitments; orgId?: string }) {
   const [currentStep, setCurrentStep]         = useState<PledgeStep>('details');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  // Pledging is a deliberate act — every checkbox starts UNticked; the user opts in.
-  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: false, consent: false });
+  // Consent boxes (privacy + marketing opt-in) start ticked. Commitments do NOT —
+  // pledging itself is the deliberate act, so the user ticks those.
+  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true, consent: true });
 
   const hasCommitments = pledge.commitments.length > 0;
 
