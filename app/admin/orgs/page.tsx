@@ -2,6 +2,9 @@ import prisma from '@/lib/prisma';
 import AddOrgForm from './AddOrgForm';
 import Link from 'next/link';
 import DeleteOrgButton from './DeleteOrgButton';
+import CopyLinkButton from '../../organizations/CopyLinkButton';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? '';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,9 +23,9 @@ export default async function AdminOrgsPage() {
   return (
     <div className="pb-16 animate-in fade-in duration-500">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Organizations</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Organisations</h1>
         <p className="text-gray-500 text-sm mt-2">
-          {orgs.length} total organization{orgs.length !== 1 ? 's' : ''} registered on the platform.
+          {orgs.length} total organisation{orgs.length !== 1 ? 's' : ''} registered. Share each org&apos;s magic link to attribute their participation — partner orgs are never listed publicly.
         </p>
       </div>
 
@@ -30,8 +33,8 @@ export default async function AdminOrgsPage() {
         {orgs.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <p className="text-4xl mb-3">🏢</p>
-            <p className="font-medium">No organizations yet</p>
-            <p className="text-sm mt-1">Add your first organization below</p>
+            <p className="font-medium">No organisations yet</p>
+            <p className="text-sm mt-1">Add your first organisation below</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -66,10 +69,11 @@ export default async function AdminOrgsPage() {
                       <Link
                         href={`/quiz/${quizSlug}?org=${org.slug}`}
                         target="_blank"
-                        className="text-teal-600 hover:text-teal-700 font-semibold text-xs transition-colors"
+                        className="text-teal-600 hover:text-teal-700 font-semibold text-xs transition-colors font-mono"
                       >
-                        ?org={org.slug}
+                        /quiz/{quizSlug}?org={org.slug}
                       </Link>
+                      <CopyLinkButton url={`${APP_URL}/quiz/${quizSlug}?org=${org.slug}`} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right flex items-center justify-end gap-2">
                       <Link href={`/admin/orgs/${org.slug}/edit`} title="Edit Organization" className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-block">

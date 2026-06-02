@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import prisma from '@/lib/prisma';
-import OrgSelector from './OrgSelector';
 
 export async function generateMetadata(context: { params: Promise<{ slug: string }> }) {
   const { slug } = await context.params;
@@ -20,19 +19,24 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
 export default async function QuizLandingPage(context: { params: Promise<{ slug: string }>; searchParams: Promise<{ org?: string }> }) {
   const { slug } = await context.params;
   const { org } = await context.searchParams;
-  const [quiz, orgs] = await Promise.all([
-    prisma.quiz.findUnique({
-      where: { slug },
-      include: { _count: { select: { attempts: true, questions: true } } }
-    }),
-    prisma.organization.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-      select: { name: true, slug: true, posterLogoUrl: true }
-    })
-  ]);
+  const quiz = await prisma.quiz.findUnique({
+    where: { slug },
+    include: { _count: { select: { attempts: true, questions: true } } }
+  });
 
   if (!quiz) notFound();
+
+  // Org attribution is magic-link only — we never list partner orgs publicly.
+  // A valid ?org=<slug> (shared by the org via the admin panel) auto-attributes;
+  // everyone else takes the quiz as General Public.
+  const attributedOrg = org
+    ? await prisma.organization.findFirst({
+        where: { slug: org, isActive: true },
+        select: { name: true, slug: true },
+      })
+    : null;
+
+  const takeHref = `/quiz/${quiz.slug}/take${attributedOrg ? `?org=${attributedOrg.slug}` : ''}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -67,14 +71,17 @@ export default async function QuizLandingPage(context: { params: Promise<{ slug:
              <p>No login required. Instant certificate.</p>
              <p className="mt-2 text-sm text-teal-700">{quiz._count.attempts.toLocaleString()} people have taken this quiz.</p>
           </div>
-          
-          {orgs.length > 0 ? (
-            <OrgSelector orgs={orgs} quizSlug={quiz.slug} defaultOrg={org} />
-          ) : (
-            <a href={`/quiz/${quiz.slug}/take${org ? `?org=${org}` : ''}`} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
-              Start Quiz
-            </a>
+
+          {attributedOrg && (
+            <div className="max-w-md mx-auto mb-8 flex items-center justify-center gap-2 rounded-2xl border border-teal-200 bg-white px-5 py-3 text-sm font-semibold text-teal-800 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-teal-500" />
+              Taking part as <span className="font-extrabold">{attributedOrg.name}</span>
+            </div>
           )}
+
+          <a href={takeHref} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
+            Start Quiz
+          </a>
         </section>
       </main>
       <Footer />
