@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import QrCodeButton from './QrCodeButton';
 
 export type Activity = { label: string; path: string; group: string };
 
@@ -54,6 +55,7 @@ export default function MagicLinkPicker({
         >
           {copied ? 'Copied!' : 'Copy'}
         </button>
+        <QrCodeButton url={url} filename={`qr-${orgSlug}-${path.split('/').filter(Boolean).pop() || 'link'}`} />
       </div>
       <code className="text-[10px] text-gray-400 font-mono truncate">{path}?org={orgSlug}</code>
     </div>
