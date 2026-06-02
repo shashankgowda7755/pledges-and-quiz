@@ -11,17 +11,36 @@ export default async function Home() {
     orderBy: { eventDate: 'desc' }
   });
 
-  const isSameDay = (a: Date, b: Date) =>
-    a.getUTCFullYear() === b.getUTCFullYear() &&
-    a.getUTCMonth() === b.getUTCMonth() &&
-    a.getUTCDate() === b.getUTCDate();
+  // "Live" is driven purely by event dates — never a manual pin — and compared
+  // in IST (Asia/Kolkata, UTC+5:30) since events run in India.
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+  const toIST = (d: Date) => new Date(d.getTime() + IST_OFFSET_MS);
+  const nowIST = toIST(new Date());
+  const istDayKey = (d: Date) => {
+    const x = toIST(d);
+    return `${x.getUTCFullYear()}-${x.getUTCMonth()}-${x.getUTCDate()}`;
+  };
+  const todayKey = `${nowIST.getUTCFullYear()}-${nowIST.getUTCMonth()}-${nowIST.getUTCDate()}`;
 
-  const todayUTC = new Date();
-  const todaysEvent = pledges.find(p => p.eventDate && isSameDay(new Date(p.eventDate), todayUTC));
-  const livePledge = todaysEvent || pledges.find(p => p.isFeatured) || pledges[0];
-    
-  const upcomingPledges = pledges.filter(p => p.eventDate && new Date(p.eventDate) > new Date()).slice(0, 10);
+  const isToday = (d: Date) => istDayKey(d) === todayKey;
+  const isFuture = (d: Date) => istDayKey(d) !== todayKey && d.getTime() > Date.now();
+
+  // Event happening today (IST). pledges are sorted eventDate desc.
+  const todaysEvent = pledges.find(p => p.eventDate && isToday(new Date(p.eventDate)));
+  // Soonest upcoming event (never a past one).
+  const nextUpcoming = [...pledges]
+    .filter(p => p.eventDate && isFuture(new Date(p.eventDate)))
+    .sort((a, b) => new Date(a.eventDate!).getTime() - new Date(b.eventDate!).getTime())[0];
   const timelessPledges = pledges.filter(p => !p.eventDate).slice(0, 6);
+
+  // Show today's live event; else the next upcoming; else an evergreen pledge.
+  // A finished (past-dated) event is NEVER shown as live.
+  const livePledge = todaysEvent || nextUpcoming || timelessPledges[0];
+
+  const upcomingPledges = pledges
+    .filter(p => p.eventDate && isFuture(new Date(p.eventDate)))
+    .sort((a, b) => new Date(a.eventDate!).getTime() - new Date(b.eventDate!).getTime())
+    .slice(0, 10);
   
   const quizzes = await prisma.quiz.findMany({
     where: { isActive: true, isFeatured: true },
@@ -79,7 +98,7 @@ export default async function Home() {
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-sun" />
                   </span>
                   <span className="text-amber-sun font-bold tracking-[0.15em] text-xs uppercase">
-                    {todaysEvent ? 'Live today' : 'Featured'}
+                    {todaysEvent ? 'Live today' : livePledge.eventDate ? 'Coming up' : 'Featured'}
                   </span>
                 </div>
                 <h2 className="text-3xl font-montserrat font-bold text-ink mb-3">{livePledge.name}</h2>
