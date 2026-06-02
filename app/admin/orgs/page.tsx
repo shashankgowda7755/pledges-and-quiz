@@ -2,23 +2,24 @@ import prisma from '@/lib/prisma';
 import AddOrgForm from './AddOrgForm';
 import Link from 'next/link';
 import DeleteOrgButton from './DeleteOrgButton';
-import CopyLinkButton from '../../organizations/CopyLinkButton';
+import MagicLinkPicker, { type Activity } from '@/components/MagicLinkPicker';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? '';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOrgsPage() {
-  const [orgs, firstQuiz] = await Promise.all([
+  const [orgs, pledges, quizzes] = await Promise.all([
     prisma.organization.findMany({ orderBy: { createdAt: 'desc' } }),
-    prisma.quiz.findFirst({
-      where: { isActive: true },
-      orderBy: { createdAt: 'asc' },
-      select: { slug: true },
-    }),
+    prisma.pledge.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' }, select: { slug: true, name: true, isCertificateOnly: true } }),
+    prisma.quiz.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' }, select: { slug: true, title: true } }),
   ]);
 
-  const quizSlug = firstQuiz?.slug ?? 'house-sparrow';
+  // Every active activity is a magic-link target: pledges, certificates, quizzes.
+  const activities: Activity[] = [
+    ...pledges.map(p => ({ label: p.name, path: `/pledges/${p.slug}`, group: p.isCertificateOnly ? 'Certificates' : 'Pledges' })),
+    ...quizzes.map(q => ({ label: q.title, path: `/quiz/${q.slug}`, group: 'Quizzes' })),
+  ];
 
   return (
     <div className="pb-16 animate-in fade-in duration-500">
@@ -45,7 +46,7 @@ export default async function AdminOrgsPage() {
                   <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Slug</th>
                   <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Quiz Link</th>
+                  <th className="text-left px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Magic Link</th>
                   <th className="text-right px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -65,15 +66,12 @@ export default async function AdminOrgsPage() {
                         {org.isActive ? 'Active' : 'Deactivated'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Link
-                        href={`/quiz/${quizSlug}?org=${org.slug}`}
-                        target="_blank"
-                        className="text-teal-600 hover:text-teal-700 font-semibold text-xs transition-colors font-mono"
-                      >
-                        /quiz/{quizSlug}?org={org.slug}
-                      </Link>
-                      <CopyLinkButton url={`${APP_URL}/quiz/${quizSlug}?org=${org.slug}`} />
+                    <td className="px-6 py-4">
+                      {org.isActive ? (
+                        <MagicLinkPicker orgSlug={org.slug} appUrl={APP_URL} activities={activities} />
+                      ) : (
+                        <span className="text-xs text-gray-400">Org deactivated</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right flex items-center justify-end gap-2">
                       <Link href={`/admin/orgs/${org.slug}/edit`} title="Edit Organization" className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-block">

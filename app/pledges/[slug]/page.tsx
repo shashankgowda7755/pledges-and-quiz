@@ -19,8 +19,9 @@ export async function generateMetadata(context: { params: Promise<{ slug: string
   };
 }
 
-export default async function PledgeLandingPage(context: { params: Promise<{ slug: string }> }) {
+export default async function PledgeLandingPage(context: { params: Promise<{ slug: string }>; searchParams: Promise<{ org?: string }> }) {
   const { slug } = await context.params;
+  const { org } = await context.searchParams;
   const pledge = await prisma.pledge.findUnique({
     where: { slug },
     include: { _count: { select: { submissions: true } } }
@@ -28,8 +29,14 @@ export default async function PledgeLandingPage(context: { params: Promise<{ slu
 
   if (!pledge) notFound();
 
+  // Magic-link attribution only — orgs are never listed publicly.
+  const attributedOrg = org
+    ? await prisma.organization.findFirst({ where: { slug: org, isActive: true }, select: { name: true, slug: true } })
+    : null;
+
   const certOnly = isCertificateOnly(pledge);
   const ctaLabel = certOnly ? 'Get My Certificate' : 'Take This Pledge';
+  const takeHref = `/pledges/${pledge.slug}/take${attributedOrg ? `?org=${attributedOrg.slug}` : ''}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -69,7 +76,14 @@ export default async function PledgeLandingPage(context: { params: Promise<{ slu
             </div>
           )}
 
-          <Link href={`/pledges/${pledge.slug}/take`} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
+          {attributedOrg && (
+            <div className="max-w-md mx-auto mb-8 flex items-center justify-center gap-2 rounded-2xl border border-teal-200 bg-white px-5 py-3 text-sm font-semibold text-teal-800 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-teal-500" />
+              Taking part as <span className="font-extrabold">{attributedOrg.name}</span>
+            </div>
+          )}
+
+          <Link href={takeHref} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
             {ctaLabel}
           </Link>
           

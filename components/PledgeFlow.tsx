@@ -43,7 +43,7 @@ interface UserData {
   consent: boolean;
 }
 
-export function PledgeFlow({ pledge }: { pledge: PledgeWithCommitments }) {
+export function PledgeFlow({ pledge, orgId }: { pledge: PledgeWithCommitments; orgId?: string }) {
   const [currentStep, setCurrentStep]         = useState<PledgeStep>('details');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true, consent: false });
@@ -70,6 +70,7 @@ export function PledgeFlow({ pledge }: { pledge: PledgeWithCommitments }) {
           userEmail: userData.email,
           whatsapp: userData.whatsapp,
           agreed: userData.agreed,
+          ...(orgId && { orgId }),
         }),
       });
     } catch (e) {
@@ -104,6 +105,7 @@ export function PledgeFlow({ pledge }: { pledge: PledgeWithCommitments }) {
           <PledgeCommitments
             pledge={pledge}
             userData={userData}
+            orgId={orgId}
             onBack={() => goToStep('preview')}
             onSuccess={() => goToStep('success')}
           />
@@ -528,7 +530,7 @@ function PledgePreview({ userData, pledge, onBack, onConfirm }: { userData: User
 // -------------------------------------------------------------
 // Step 3: Commitments (The Checkboxes) & Submission
 // -------------------------------------------------------------
-function PledgeCommitments({ pledge, userData, onBack, onSuccess }: { pledge: PledgeWithCommitments, userData: UserData, onBack: () => void, onSuccess: () => void }) {
+function PledgeCommitments({ pledge, userData, orgId, onBack, onSuccess }: { pledge: PledgeWithCommitments, userData: UserData, orgId?: string, onBack: () => void, onSuccess: () => void }) {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -555,6 +557,7 @@ function PledgeCommitments({ pledge, userData, onBack, onSuccess }: { pledge: Pl
           userEmail: userData.email,
           whatsapp: userData.whatsapp,
           agreed: userData.agreed,
+          ...(orgId && { orgId }),
         }),
       });
 

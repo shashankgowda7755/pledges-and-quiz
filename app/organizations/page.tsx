@@ -1,116 +1,15 @@
 export const dynamic = 'force-dynamic';
 
-import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import prisma from '@/lib/prisma';
 import ContactForm from './ContactForm';
-import CopyLinkButton from './CopyLinkButton';
 
-const TYPE_LABELS: Record<string, string> = {
-  school: 'School',
-  ngo: 'NGO',
-  company: 'Company',
-  other: 'Organisation',
-};
-
-const TYPE_COLORS: Record<string, string> = {
-  school: 'bg-blue-50 text-blue-700',
-  ngo: 'bg-green-50 text-green-700',
-  company: 'bg-purple-50 text-purple-700',
-  other: 'bg-gray-100 text-gray-600',
-};
-
-export default async function OrganizationsPage() {
-  const [orgs, firstQuiz] = await Promise.all([
-    prisma.organization.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-      select: { name: true, slug: true, type: true, posterLogoUrl: true },
-    }),
-    prisma.quiz.findFirst({
-      where: { isActive: true },
-      orderBy: { createdAt: 'asc' },
-      select: { slug: true },
-    }),
-  ]);
-
-  const quizSlug = firstQuiz?.slug ?? 'house-sparrow';
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://pledges-and-quiz.vercel.app';
-
+export default function OrganizationsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 w-full">
 
-        {/* ── Active Programs ── */}
-        {orgs.length > 0 && (
-          <section className="py-16 px-4 bg-white border-b border-gray-100">
-            <div className="max-w-7xl mx-auto">
-              <div className="mb-10">
-                <span className="inline-block px-3 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-bold uppercase tracking-widest mb-3">
-                  Active Programs
-                </span>
-                <h2 className="text-3xl font-montserrat font-extrabold text-gray-900">
-                  Partner Organisations
-                </h2>
-                <p className="text-gray-500 mt-2 text-base">
-                  Each organisation has its own quiz link. Share it with your community.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {orgs.map((org) => {
-                  const quizUrl = `${APP_URL}/quiz/${quizSlug}?org=${org.slug}`;
-                  const colorClass = TYPE_COLORS[org.type] ?? TYPE_COLORS.other;
-                  const typeLabel = TYPE_LABELS[org.type] ?? 'Organization';
-
-                  return (
-                    <div
-                      key={org.slug}
-                      className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col gap-4"
-                    >
-                      {/* Logo + name row */}
-                      <div className="flex items-center gap-3">
-                        {org.posterLogoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={org.posterLogoUrl}
-                            alt={org.name}
-                            className="w-12 h-12 object-contain rounded-xl border border-gray-100 bg-gray-50 p-1 flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-500 flex-shrink-0">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <h3 className="font-bold text-gray-900 text-base leading-tight truncate">{org.name}</h3>
-                          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${colorClass}`}>
-                            {typeLabel}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Quiz link */}
-                      <div className="mt-auto flex flex-col gap-2">
-                        <Link
-                          href={`/quiz/${quizSlug}?org=${org.slug}`}
-                          className="w-full text-center bg-teal-500 hover:bg-teal-600 text-white font-bold rounded-xl py-3 text-sm transition-colors shadow-sm shadow-teal-500/20"
-                        >
-                          Take Quiz →
-                        </Link>
-                        <CopyLinkButton url={quizUrl} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* ── Hero ── */}
         <section className="bg-gray-900 py-24 px-4 text-center">
