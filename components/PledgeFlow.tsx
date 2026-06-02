@@ -46,7 +46,8 @@ interface UserData {
 export function PledgeFlow({ pledge, orgId }: { pledge: PledgeWithCommitments; orgId?: string }) {
   const [currentStep, setCurrentStep]         = useState<PledgeStep>('details');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true, consent: true });
+  // Pledging is a deliberate act — every checkbox starts UNticked; the user opts in.
+  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: false, consent: false });
 
   const hasCommitments = pledge.commitments.length > 0;
 
@@ -531,10 +532,8 @@ function PledgePreview({ userData, pledge, onBack, onConfirm }: { userData: User
 // Step 3: Commitments (The Checkboxes) & Submission
 // -------------------------------------------------------------
 function PledgeCommitments({ pledge, userData, orgId, onBack, onSuccess }: { pledge: PledgeWithCommitments, userData: UserData, orgId?: string, onBack: () => void, onSuccess: () => void }) {
-  // All commitments start ticked — user opts out, not in.
-  const [checked, setChecked] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(pledge.commitments.map(c => [c.id, true]))
-  );
+  // Commitments start UNticked — the user must actively tick each pledge.
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
