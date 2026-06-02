@@ -2,21 +2,19 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import prisma from '@/lib/prisma';
+import { getCalendarItems } from '@/lib/calendar';
 import { CalendarSubscribe } from './CalendarSubscribe';
 
 export default async function CalendarPage() {
-  const events = await prisma.event.findMany({
-    where: { isActive: true },
-    orderBy: { startDate: 'asc' }
-  });
+  // Unified feed: Event records + standalone dated pledges, auto-linked.
+  const events = await getCalendarItems({ upcomingOnly: true });
 
   const now = new Date();
   const next30Days = new Date();
   next30Days.setDate(next30Days.getDate() + 30);
 
   const upcomingEvents = events.filter(
-    e => new Date(e.startDate) <= next30Days && new Date(e.startDate) >= now
+    e => new Date(e.date) <= next30Days
   );
 
   return (
@@ -34,19 +32,19 @@ export default async function CalendarPage() {
                 <div key={e.id} className="flex gap-6 group">
                   <div className="flex flex-col items-center justify-center min-w-[60px]">
                     <span className="text-sm font-bold text-gray-400 uppercase">
-                      {new Intl.DateTimeFormat('en-US', { month: 'short' }).format(new Date(e.startDate))}
+                      {new Intl.DateTimeFormat('en-US', { month: 'short' }).format(new Date(e.date))}
                     </span>
                     <span className="text-3xl font-bold font-ibm-mono text-teal-500">
-                      {new Date(e.startDate).getDate()}
+                      {new Date(e.date).getDate()}
                     </span>
                   </div>
                   <div className="flex-1 bg-gray-50 rounded-xl p-5 border border-gray-100 group-hover:border-teal-200 transition-colors">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="text-lg font-bold text-gray-900 group-hover:text-teal-600 transition-colors">{e.title}</h4>
-                      {e.location && <span className="text-xs font-bold text-gray-500 uppercase px-2 py-1 bg-gray-200 rounded-md">{e.location}</span>}
+                      <span className="text-xs font-bold text-gray-500 uppercase px-2 py-1 bg-gray-200 rounded-md">{e.location || e.kind}</span>
                     </div>
-                    <p className="text-gray-600 text-sm mb-4">{e.description}</p>
-                    <Link href={`/events/${e.slug}`} className="text-teal-600 font-semibold text-sm hover:text-teal-700">View Event →</Link>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{e.description}</p>
+                    <Link href={e.href} className="text-teal-600 font-semibold text-sm hover:text-teal-700">{e.kind === 'Pledge' ? 'Take the pledge →' : 'View event →'}</Link>
                   </div>
                 </div>
               ))}
@@ -63,9 +61,9 @@ export default async function CalendarPage() {
                 {upcomingEvents.map(e => (
                   <li key={e.id} className="text-sm border-b border-gray-50 pb-3 last:border-0 last:pb-0">
                     <span className="font-bold text-teal-600 mr-2 block mb-1">
-                      {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(e.startDate))}
+                      {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(e.date))}
                     </span>
-                    <Link href={`/events/${e.slug}`} className="text-gray-700 hover:text-gray-900 font-medium block">{e.title}</Link>
+                    <Link href={e.href} className="text-gray-700 hover:text-gray-900 font-medium block">{e.title}</Link>
                   </li>
                 ))}
               </ul>

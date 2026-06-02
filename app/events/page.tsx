@@ -2,17 +2,11 @@ export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import prisma from '@/lib/prisma';
+import { getCalendarItems } from '@/lib/calendar';
 
 export default async function EventsPage() {
-  const events = await prisma.event.findMany({
-    where: { isActive: true },
-    orderBy: { startDate: 'asc' },
-    include: {
-      hostOrg: { select: { name: true } },
-      _count: { select: { pledges: true, quizzes: true } },
-    },
-  });
+  // Unified feed: Event records + standalone dated pledges, auto-linked.
+  const events = await getCalendarItems({ upcomingOnly: true });
 
   const fmt = (d: Date) =>
     new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(d));
@@ -30,7 +24,7 @@ export default async function EventsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
             {events.map(ev => (
-              <Link key={ev.id} href={`/events/${ev.slug}`} className="card card-hover overflow-hidden flex flex-col group">
+              <Link key={ev.id} href={ev.href} className="card card-hover overflow-hidden flex flex-col group">
                 {ev.bannerUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={ev.bannerUrl} alt={ev.title} className="h-44 w-full object-cover" />
@@ -39,15 +33,12 @@ export default async function EventsPage() {
                 )}
                 <div className="p-6 flex-1 flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
-                    {ev.isFeatured && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-amber-sun/15 text-amber-sun rounded-full">Featured</span>}
-                    <span className="text-xs font-bold text-leaf">{fmt(ev.startDate)}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-leaf/15 text-leaf rounded-full">{ev.kind}</span>
+                    <span className="text-xs font-bold text-leaf">{fmt(ev.date)}</span>
                   </div>
                   <h3 className="text-lg font-bold font-montserrat text-ink group-hover:text-forest transition-colors mb-1">{ev.title}</h3>
                   <p className="text-sm text-[color:var(--muted)] line-clamp-2 flex-1 leading-relaxed">{ev.description}</p>
-                  <div className="mt-4 text-xs text-[color:var(--muted)] font-medium">
-                    {ev.hostOrg?.name && <span>{ev.hostOrg.name} · </span>}
-                    {ev._count.pledges} pledge{ev._count.pledges !== 1 ? 's' : ''} · {ev._count.quizzes} quiz{ev._count.quizzes !== 1 ? 'zes' : ''}
-                  </div>
+                  <div className="mt-4 text-xs font-semibold text-forest">{ev.kind === 'Pledge' ? 'Take the pledge →' : 'View event →'}</div>
                 </div>
               </Link>
             ))}
