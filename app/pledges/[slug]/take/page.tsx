@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { PledgeFlow } from '@/components/PledgeFlow';
+import EventClosed from '@/components/EventClosed';
 import prisma from '@/lib/prisma';
 import { isCertificateOnly } from '@/lib/pledgeMode';
 
@@ -33,6 +34,17 @@ export default async function TakePledgePage(context: { params: Promise<{ slug: 
   ]);
 
   if (!pledge) notFound();
+
+  if (!pledge.isActive) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F2F0E9] relative">
+        <Header />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <EventClosed slug={pledge.slug} kind="pledge" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F2F0E9] relative">

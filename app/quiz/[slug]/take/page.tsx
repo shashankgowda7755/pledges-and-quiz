@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { QuizFlow } from '@/components/QuizFlow';
+import EventClosed from '@/components/EventClosed';
 import prisma from '@/lib/prisma';
 
 export async function generateMetadata(context: { params: Promise<{ slug: string }> }) {
@@ -37,6 +38,17 @@ export default async function TakeQuizPage(context: { params: Promise<{ slug: st
   ]);
 
   if (!quiz) notFound();
+
+  if (!quiz.isActive) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F2F0E9] relative">
+        <Header />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <EventClosed slug={quiz.slug} kind="quiz" />
+        </div>
+      </div>
+    );
+  }
 
   const posterUrl = org?.quizPosterUrl ?? quiz.bgImageUrl;
   const orgLogoUrl = org?.posterLogoUrl ?? null;

@@ -76,16 +76,25 @@ export default async function PledgeLandingPage(context: { params: Promise<{ slu
             </div>
           )}
 
-          {attributedOrg && (
-            <div className="max-w-md mx-auto mb-8 flex items-center justify-center gap-2 rounded-2xl border border-teal-200 bg-white px-5 py-3 text-sm font-semibold text-teal-800 shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-teal-500" />
-              Taking part as <span className="font-extrabold">{attributedOrg.name}</span>
+          {!pledge.isActive ? (
+            <div className="max-w-md mx-auto rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-center">
+              <p className="text-lg font-bold text-amber-800">🔒 This event is over</p>
+              <p className="text-sm text-amber-700 mt-1">Entries are closed and no longer being accepted.</p>
             </div>
-          )}
+          ) : (
+            <>
+              {attributedOrg && (
+                <div className="max-w-md mx-auto mb-8 flex items-center justify-center gap-2 rounded-2xl border border-teal-200 bg-white px-5 py-3 text-sm font-semibold text-teal-800 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-teal-500" />
+                  Taking part as <span className="font-extrabold">{attributedOrg.name}</span>
+                </div>
+              )}
 
-          <Link href={takeHref} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
-            {ctaLabel}
-          </Link>
+              <Link href={takeHref} className="inline-block bg-teal-500 text-white rounded-full px-12 py-5 text-xl font-bold hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all hover:-translate-y-1">
+                {ctaLabel}
+              </Link>
+            </>
+          )}
           
           <SharePledgeLink title={pledge.name} />
         </section>

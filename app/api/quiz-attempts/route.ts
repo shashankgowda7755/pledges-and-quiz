@@ -18,6 +18,12 @@ export async function POST(request: Request) {
     const data = schema.parse(body);
     const email = data.userEmail || null;
 
+    // Server-side guard: a deactivated quiz accepts no new attempts.
+    const quizActive = await prisma.quiz.findUnique({ where: { id: data.quizId }, select: { isActive: true } });
+    if (!quizActive || !quizActive.isActive) {
+      return NextResponse.json({ error: 'This event is over. Entries are closed.' }, { status: 403 });
+    }
+
     // Dedup only when an email was captured.
     if (email) {
       const existing = await prisma.quizAttempt.findUnique({

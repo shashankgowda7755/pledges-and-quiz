@@ -17,6 +17,12 @@ export async function POST(request: Request) {
     const data = schema.parse(body);
     const email = data.userEmail || null;
 
+    // Server-side guard: a deactivated pledge accepts no new entries.
+    const pledge = await prisma.pledge.findUnique({ where: { id: data.pledgeId }, select: { isActive: true } });
+    if (!pledge || !pledge.isActive) {
+      return NextResponse.json({ error: 'This event is over. Entries are closed.' }, { status: 403 });
+    }
+
     // Dedup only when an email was captured. Forms with email collection
     // turned off allow repeat submissions (no reliable unique key).
     if (email) {
