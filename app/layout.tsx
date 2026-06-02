@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: { card: 'summary_large_image' },
+  other: { google: 'notranslate' }, // belt-and-suspenders against Translate-induced DOM crashes
 };
 
 export default function RootLayout({
@@ -38,9 +39,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // translate="no" + notranslate stop Google Translate from rewriting React's
+  // DOM text nodes, which otherwise throws "insertBefore ... not a child of this
+  // node" and takes down the page (common on extension-heavy browsers).
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className={`${montserrat.variable} ${inter.variable} ${ibmMono.variable} font-inter antialiased bg-cream text-ink min-h-screen flex flex-col`}>
+    <html lang="en" translate="no" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`notranslate ${montserrat.variable} ${inter.variable} ${ibmMono.variable} font-inter antialiased bg-cream text-ink min-h-screen flex flex-col`}>
         {children}
       </body>
     </html>

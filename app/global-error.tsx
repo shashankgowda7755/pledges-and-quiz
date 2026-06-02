@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 // from stale-chunk errors after a deploy.
 function isChunkError(err: Error) {
   const s = `${err?.name} ${err?.message}`;
-  return /ChunkLoadError|Loading chunk|dynamically imported module|Failed to fetch/i.test(s);
+  return /ChunkLoadError|Loading chunk|dynamically imported module|Failed to fetch|insertBefore|removeChild|not a child/i.test(s);
 }
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {

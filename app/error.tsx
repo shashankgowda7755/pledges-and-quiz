@@ -6,7 +6,9 @@ import { useEffect } from 'react';
 // tab is open: the old HTML asks for JS chunk hashes that no longer exist.
 function isChunkError(err: Error) {
   const s = `${err?.name} ${err?.message}`;
-  return /ChunkLoadError|Loading chunk|dynamically imported module|Failed to fetch/i.test(s);
+  // Chunk errors (stale deploy) + DOM-mutation errors from extensions like Google
+  // Translate ("insertBefore/removeChild ... not a child") — a reload recovers both.
+  return /ChunkLoadError|Loading chunk|dynamically imported module|Failed to fetch|insertBefore|removeChild|not a child/i.test(s);
 }
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
