@@ -12,6 +12,8 @@ function isChunkError(err: Error) {
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Surface the real error — without this it's swallowed and undebuggable in prod.
+    console.error('[error-boundary]', error?.name, error?.message, 'digest:', error?.digest, error?.stack);
     if (isChunkError(error)) {
       // Reload once (guarded) to pull the fresh bundle.
       const key = 'chunk-reloaded-at';
@@ -30,6 +32,11 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
       <p className="text-gray-500 text-sm max-w-md">
         This is usually a temporary glitch from a fresh update. Reloading almost always fixes it.
       </p>
+      {(error?.digest || error?.message) && (
+        <p className="text-[11px] text-gray-400 font-mono break-all max-w-md">
+          {error.message || ''}{error.digest ? ` · ref ${error.digest}` : ''}
+        </p>
+      )}
       <div className="flex gap-3 mt-2">
         <button onClick={() => reset()} className="px-5 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50">
           Try again

@@ -12,6 +12,7 @@ function isChunkError(err: Error) {
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    console.error('[global-error-boundary]', error?.name, error?.message, 'digest:', error?.digest, error?.stack);
     if (isChunkError(error)) {
       const key = 'chunk-reloaded-at';
       const last = Number(sessionStorage.getItem(key) || 0);
@@ -31,6 +32,11 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <p style={{ color: '#6b7280', fontSize: 14, maxWidth: 420 }}>
             This is usually a temporary glitch from a fresh update. Reloading almost always fixes it.
           </p>
+          {(error?.digest || error?.message) && (
+            <p style={{ color: '#9ca3af', fontSize: 11, fontFamily: 'monospace', wordBreak: 'break-all', maxWidth: 420 }}>
+              {error.message || ''}{error.digest ? ` · ref ${error.digest}` : ''}
+            </p>
+          )}
           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
             <button onClick={() => reset()} style={{ padding: '10px 20px', borderRadius: 12, border: '1px solid #d1d5db', background: '#fff', fontWeight: 700, cursor: 'pointer' }}>
               Try again
