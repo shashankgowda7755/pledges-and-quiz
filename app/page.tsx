@@ -80,7 +80,7 @@ export default async function Home() {
               <Link href="/pledges" className="btn-primary text-lg">Take a Pledge →</Link>
               <Link href="/quiz" className="btn-ghost text-lg">Try a Quiz</Link>
             </div>
-            <p className="text-sm text-[color:var(--muted)] mt-5 font-medium">No login required · Free forever</p>
+            <p className="text-sm text-[color:var(--muted)] mt-5 font-medium">No login required</p>
           </div>
         </section>
 
