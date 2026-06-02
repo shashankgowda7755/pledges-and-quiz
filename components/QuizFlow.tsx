@@ -449,7 +449,9 @@ function QuizEngine({ quiz, userData, onComplete }: {
   const moodColor = mood === 'neutral' ? 'bg-stone-200' : (mood === 'happy' ? 'bg-teal-500' : 'bg-red-400');
 
   const handleSelect = (aId: string) => {
-    if (answerState !== 'idle') return;
+    // Allow changing the pick freely until it's confirmed. Lock only once
+    // we're verifying or the answer has been revealed.
+    if (answerState === 'verifying' || answerState === 'revealed') return;
     setSelectedOptionId(aId);
     setAnswerState('selected');
   };
@@ -541,7 +543,7 @@ function QuizEngine({ quiz, userData, onComplete }: {
             <button
               key={opt.id}
               onClick={() => handleSelect(opt.id)}
-              disabled={answerState !== 'idle'}
+              disabled={answerState === 'verifying' || answerState === 'revealed'}
               className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-300 font-medium text-gray-800 flex justify-between items-center ${optStyle}`}
             >
               <span>{opt.text}</span>
