@@ -54,7 +54,10 @@ export function Footer() {
               </form>
             )}
             {status === 'error' && <p className="text-red-500 text-sm mt-2">Something went wrong. Please try again.</p>}
-            <p className="text-[color:var(--muted)] text-sm mt-3">Monthly digest. Unsubscribe anytime.</p>
+            <p className="text-[color:var(--muted)] text-sm mt-3">
+              Monthly digest. Unsubscribe anytime. See our{' '}
+              <Link href="/privacy" className="underline hover:text-forest">Privacy Policy</Link>.
+            </p>
           </div>
 
           {/* Explore + Connect */}
@@ -86,9 +89,14 @@ export function Footer() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/ezone-logo.png" alt="EZONE" style={{ height: 26, width: 'auto', display: 'block' }} />
           </div>
-          <p className="text-[color:var(--muted)] text-sm text-center sm:text-right">
-            Small acts. Living forests. · © {new Date().getFullYear()} COMMUNITREE &amp; EZONE
-          </p>
+          <div className="flex flex-col sm:items-end gap-1">
+            <Link href="/privacy" className="text-[color:var(--muted)] text-sm hover:text-forest underline">
+              Privacy Policy &amp; Terms
+            </Link>
+            <p className="text-[color:var(--muted)] text-sm text-center sm:text-right">
+              Turning intentions into action. · © {new Date().getFullYear()} COMMUNITREE &amp; EZONE
+            </p>
+          </div>
         </div>
       </div>
     </footer>

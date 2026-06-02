@@ -15,6 +15,8 @@ const WATER_PLEDGE = {
   impactPerUnit: 50,
   isActive: true,
   isFeatured: true,
+  collectEmail: true,
+  collectPhone: true,
   eventDate: new Date('2026-04-17T00:00:00.000Z'),
   createdAt: new Date(),
   orgId: null,

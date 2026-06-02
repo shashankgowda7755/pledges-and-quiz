@@ -52,7 +52,7 @@ export default async function Home() {
           <div className="container-page py-20 md:py-28 text-center">
             <span className="eyebrow mb-5">🌱 COMMUNITREE &amp; EZONE</span>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-montserrat font-extrabold text-ink tracking-tight leading-[1.05] mb-6">
-              Small acts.<br /><span className="text-forest">Living forests.</span>
+              Turning intentions<br /><span className="text-forest">into action.</span>
             </h1>
             <p className="text-lg md:text-xl text-[color:var(--muted)] max-w-2xl mx-auto mb-10">
               Take a pledge, test what you know, and earn a personalised certificate in under a minute — and help grow real man-made forests.

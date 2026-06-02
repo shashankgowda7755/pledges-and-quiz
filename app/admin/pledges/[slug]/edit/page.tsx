@@ -40,6 +40,8 @@ export default async function EditPledgePage(context: { params: Promise<{ slug: 
             eventId: pledge.eventId,
             certConfig: pledge.certConfig,
             commitments: pledge.commitments.map(c => c.text),
+            collectEmail: pledge.collectEmail,
+            collectPhone: pledge.collectPhone,
           }}
         />
       </div>

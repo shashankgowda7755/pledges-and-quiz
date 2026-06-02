@@ -36,13 +36,14 @@ interface UserData {
   whatsapp: string;
   photoUrl: string | null;
   agreed: boolean;
+  consent: boolean;
   orgId?: string;
 }
 
 export function QuizFlow({ quiz, orgId, posterUrl, orgLogoUrl, logoPosition }: { quiz: QuizWithQuestions; orgId?: string; posterUrl?: string; orgLogoUrl?: string | null; logoPosition?: string | null }) {
   const [currentStep, setCurrentStep] = useState<QuizStep>('form');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, orgId });
+  const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, consent: false, orgId });
   const [scoreData, setScoreData] = useState<{ score: number, total: number } | null>(null);
   const activePosterUrl = posterUrl ?? quiz.bgImageUrl;
 
@@ -262,7 +263,7 @@ function CameraModal({ onCapture, onClose }: { onCapture: (src: string) => void;
 
 function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data: UserData) => void }) {
   const [formData, setFormData] = useState<UserData>({
-    fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true
+    fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, consent: false
   });
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
   const [showCamera, setShowCamera]   = useState(false);
@@ -277,7 +278,9 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
     e.target.value = '';
   };
 
-  const isValid = formData.photoUrl !== null && formData.fullName.length > 2 && formData.email.includes('@') && formData.email.includes('.') && formData.whatsapp.length > 5;
+  const emailOk = !quiz.collectEmail || (formData.email.includes('@') && formData.email.includes('.'));
+  const phoneOk = !quiz.collectPhone || formData.whatsapp.length > 5;
+  const isValid = formData.photoUrl !== null && formData.fullName.length > 2 && emailOk && phoneOk && formData.consent;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,7 +354,9 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
             />
           </div>
 
+          {(quiz.collectPhone || quiz.collectEmail) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {quiz.collectPhone && (
             <div>
               <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">WHATSAPP*</label>
               <div className="flex">
@@ -368,6 +373,8 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
                 />
               </div>
             </div>
+            )}
+            {quiz.collectEmail && (
             <div>
               <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">EMAIL*</label>
               <input
@@ -379,7 +386,23 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
                 placeholder="name@example.com"
               />
             </div>
+            )}
           </div>
+          )}
+
+          <label className="flex items-start gap-4 cursor-pointer group pt-2">
+            <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-colors ${formData.consent ? 'bg-teal-500 border-teal-500' : 'bg-gray-50 border-gray-300 group-hover:border-gray-400'}`}>
+              <input type="checkbox" className="hidden" checked={formData.consent} onChange={e => setFormData({ ...formData, consent: e.target.checked })} />
+              {formData.consent && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+            </div>
+            <span className="text-xs text-gray-600 leading-snug select-none">
+              I have read and agree to the{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-teal-600 underline font-medium" onClick={e => e.stopPropagation()}>
+                Privacy Policy &amp; Terms
+              </a>
+              , including how my data (and any child&apos;s data I submit) is used, stored, and deleted after 3 months. <span className="text-red-500">*</span>
+            </span>
+          </label>
 
           <label className="flex items-start gap-4 cursor-pointer group pt-2">
             <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-colors ${formData.agreed ? 'bg-teal-500 border-teal-500' : 'bg-gray-50 border-gray-300 group-hover:border-gray-400'}`}>

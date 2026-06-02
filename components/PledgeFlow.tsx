@@ -40,12 +40,13 @@ interface UserData {
   email: string;
   photoUrl: string | null;
   agreed: boolean;
+  consent: boolean;
 }
 
 export function PledgeFlow({ pledge }: { pledge: PledgeWithCommitments }) {
   const [currentStep, setCurrentStep]         = useState<PledgeStep>('details');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true });
+  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true, consent: false });
 
   const hasCommitments = pledge.commitments.length > 0;
 
@@ -312,7 +313,9 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
     setRawImageSrc(null);
   };
 
-  const isValid = userData.photoUrl !== null && userData.fullName.length > 2 && userData.email.includes('@') && userData.email.includes('.') && userData.whatsapp.length > 5;
+  const emailOk = !pledge.collectEmail || (userData.email.includes('@') && userData.email.includes('.'));
+  const phoneOk = !pledge.collectPhone || userData.whatsapp.length > 5;
+  const isValid = userData.photoUrl !== null && userData.fullName.length > 2 && emailOk && phoneOk && userData.consent;
 
   return (
     <>
@@ -383,15 +386,17 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
             />
           </div>
           
+          {(pledge.collectPhone || pledge.collectEmail) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {pledge.collectPhone && (
             <div>
               <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">WHATSAPP</label>
               <div className="flex">
                 <div className="bg-gray-50/50 border border-gray-200 border-r-0 rounded-l-xl px-4 py-3.5 text-sm text-gray-600 font-medium flex items-center justify-center">
                   India (+91)
                 </div>
-                <input 
-                  type="tel" 
+                <input
+                  type="tel"
                   value={userData.whatsapp}
                   onChange={e => onChange({ whatsapp: e.target.value })}
                   className="w-full bg-gray-50/50 border border-gray-200 rounded-r-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
@@ -399,25 +404,48 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
                 />
               </div>
             </div>
+            )}
+            {pledge.collectEmail && (
             <div>
               <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">EMAIL</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 value={userData.email}
                 onChange={e => onChange({ email: e.target.value })}
                 className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
                 placeholder="name@example.com"
               />
             </div>
+            )}
           </div>
+          )}
 
           <label className="flex items-start gap-4 cursor-pointer group mt-6 pt-4">
+            <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-colors ${userData.consent ? 'bg-[#f97316] border-[#f97316]' : 'bg-gray-50 border-gray-300 group-hover:border-gray-400'}`}>
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={userData.consent}
+                onChange={(e) => onChange({ consent: e.target.checked })}
+              />
+              {userData.consent && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+            </div>
+            <span className="text-sm text-gray-600 leading-snug select-none">
+              I have read and agree to the{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#f97316] underline font-medium" onClick={(e) => e.stopPropagation()}>
+                Privacy Policy &amp; Terms
+              </a>
+              , including how my data (and any child&apos;s data I submit) is used, stored, and deleted after 3 months. <span className="text-red-500">*</span>
+            </span>
+          </label>
+
+          <label className="flex items-start gap-4 cursor-pointer group mt-3">
             <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-colors ${userData.agreed ? 'bg-[#f97316] border-[#f97316]' : 'bg-gray-50 border-gray-300 group-hover:border-gray-400'}`}>
-              <input 
-                type="checkbox" 
-                className="hidden" 
-                checked={userData.agreed} 
-                onChange={(e) => onChange({ agreed: e.target.checked })} 
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={userData.agreed}
+                onChange={(e) => onChange({ agreed: e.target.checked })}
               />
               {userData.agreed && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
             </div>

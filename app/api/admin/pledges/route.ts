@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { slug, name, description, category, bgImageUrl, impactMetric, impactPerUnit, commitments, eventId, eventDate, certConfig, isCertificateOnly } = body;
+    const { slug, name, description, category, bgImageUrl, impactMetric, impactPerUnit, commitments, eventId, eventDate, certConfig, isCertificateOnly, collectEmail, collectPhone } = body;
 
     const certOnly = Boolean(isCertificateOnly);
     const commitmentList: string[] = Array.isArray(commitments) ? commitments : [];
@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
         isCertificateOnly: certOnly,
         impactMetric,
         impactPerUnit: parseFloat(impactPerUnit),
+        collectEmail: collectEmail === undefined ? true : Boolean(collectEmail),
+        collectPhone: collectPhone === undefined ? true : Boolean(collectPhone),
         eventId: eventId || null,
         eventDate: eventDate ? new Date(eventDate) : null,
         commitments: {

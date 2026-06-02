@@ -59,6 +59,8 @@ model Pledge {
   impactPerUnit Float
   isActive      Boolean              @default(true)
   isFeatured    Boolean              @default(false)
+  collectEmail  Boolean              @default(true)  // admin toggle: show email field on this form
+  collectPhone  Boolean              @default(true)  // admin toggle: show WhatsApp/phone field on this form
   eventDate     DateTime?            // null = evergreen lifestyle pledge
   createdAt     DateTime             @default(now())
   submissions   Submission[]
@@ -84,7 +86,7 @@ model Submission {
   orgId        String?
   organization Organization? @relation(fields: [orgId], references: [id])
   userName     String
-  userEmail    String
+  userEmail    String?
   whatsapp     String?
   agreed       Boolean       @default(false)
   createdAt    DateTime      @default(now())
@@ -102,6 +104,8 @@ model Quiz {
   certConfig  String?       // JSON: custom certificate layout (name box, photo slot, overlay images) in 1080x1350 space
   isActive    Boolean       @default(true)
   isFeatured  Boolean       @default(false)
+  collectEmail Boolean      @default(true)  // admin toggle: show email field on this quiz form
+  collectPhone Boolean      @default(true)  // admin toggle: show WhatsApp/phone field on this quiz form
   questions   Question[]
   attempts    QuizAttempt[]
   event       Event?        @relation(fields: [eventId], references: [id])
@@ -134,7 +138,7 @@ model QuizAttempt {
   orgId          String?
   organization   Organization? @relation(fields: [orgId], references: [id])
   userName       String
-  userEmail      String
+  userEmail      String?
   whatsapp       String?
   agreed         Boolean       @default(false)
   score          Int

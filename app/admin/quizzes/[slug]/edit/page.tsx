@@ -44,6 +44,8 @@ export default async function EditQuizPage(context: { params: Promise<{ slug: st
               text: q.text,
               options: q.answerOptions.map(o => ({ text: o.text, isCorrect: o.isCorrect })),
             })),
+            collectEmail: quiz.collectEmail,
+            collectPhone: quiz.collectPhone,
           }}
         />
       </div>

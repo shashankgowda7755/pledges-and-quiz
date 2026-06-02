@@ -6,7 +6,7 @@ interface ActivityRecord {
   id: string;
   type: 'Pledge' | 'Quiz';
   name: string;
-  email: string;
+  email: string | null;
   whatsapp: string | null;
   activityName: string;
   orgName: string;
@@ -25,7 +25,7 @@ export default function ExportCsvButton({ data }: { data: ActivityRecord[] }) {
       const sanitizedActivity = `"${row.activityName.replace(/"/g, '""')}"`;
       const sanitizedOrg = `"${row.orgName.replace(/"/g, '""')}"`;
       
-      const rowString = `${row.type},${sanitizedName},${row.email},${row.whatsapp || "N/A"},${sanitizedActivity},${sanitizedOrg},${new Date(row.date).toLocaleDateString()},${row.metadata}`;
+      const rowString = `${row.type},${sanitizedName},${row.email || "N/A"},${row.whatsapp || "N/A"},${sanitizedActivity},${sanitizedOrg},${new Date(row.date).toLocaleDateString()},${row.metadata}`;
       csvContent += rowString + "\n";
     });
 

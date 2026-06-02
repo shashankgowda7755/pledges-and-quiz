@@ -58,6 +58,7 @@ async function run() {
   let restored = 0;
   let skipped = 0;
   for (const attempt of oldAttempts) {
+    if (!attempt.userEmail) { skipped++; continue; }
     // Check if this email already has an attempt for the new quiz (unique constraint)
     const existing = await main.quizAttempt.findUnique({
       where: { userEmail_quizId: { userEmail: attempt.userEmail, quizId: newQuiz.id } },

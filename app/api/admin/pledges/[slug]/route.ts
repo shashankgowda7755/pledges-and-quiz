@@ -20,6 +20,8 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ slug:
     if (body.eventDate !== undefined) data.eventDate = body.eventDate ? new Date(body.eventDate) : null;
     if (body.eventId !== undefined) data.eventId = body.eventId || null;
     if (body.isActive !== undefined) data.isActive = Boolean(body.isActive);
+    if (body.collectEmail !== undefined) data.collectEmail = Boolean(body.collectEmail);
+    if (body.collectPhone !== undefined) data.collectPhone = Boolean(body.collectPhone);
 
     // Replace commitments wholesale if provided.
     if (Array.isArray(body.commitments)) {

@@ -81,6 +81,11 @@ export default function ContactForm() {
       <button type="submit" disabled={status === 'submitting'} className="w-full bg-teal-500 text-white rounded-lg px-8 py-4 font-bold hover:bg-teal-600 transition-colors flex justify-center items-center">
         {status === 'submitting' ? <><Loader2 className="w-5 h-5 animate-spin mr-2" /> Submitting...</> : 'Submit Request'}
       </button>
+      <p className="text-xs text-gray-500 mt-3 text-center">
+        By submitting, you agree to our{' '}
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-teal-600 underline">Privacy Policy &amp; Terms</a>.
+        Your details are stored securely and deleted after 3 months.
+      </p>
     </form>
   );
 }

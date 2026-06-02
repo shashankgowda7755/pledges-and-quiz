@@ -71,7 +71,7 @@ export default async function AdminSubmissionsPage() {
                 <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4 font-bold text-gray-900 whitespace-nowrap">{row.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-xs text-gray-900 mb-0.5">{row.email}</div>
+                    <div className="text-xs text-gray-900 mb-0.5">{row.email || '—'}</div>
                     <div className="text-[11px] text-gray-500 font-mono">{row.whatsapp || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

@@ -5,7 +5,7 @@ import { z } from 'zod';
 const schema = z.object({
   quizId: z.string(),
   userName: z.string(),
-  userEmail: z.string().email(),
+  userEmail: z.string().email().optional().or(z.literal('')),
   whatsapp: z.string().optional(),
   agreed: z.boolean().optional(),
   orgId: z.string().optional(),
@@ -16,18 +16,18 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const data = schema.parse(body);
+    const email = data.userEmail || null;
 
-    const existing = await prisma.quizAttempt.findUnique({
-      where: {
-        userEmail_quizId: {
-          userEmail: data.userEmail,
-          quizId: data.quizId
+    // Dedup only when an email was captured.
+    if (email) {
+      const existing = await prisma.quizAttempt.findUnique({
+        where: {
+          userEmail_quizId: { userEmail: email, quizId: data.quizId }
         }
+      });
+      if (existing) {
+        return NextResponse.json({ id: existing.id, score: existing.score, totalQuestions: existing.totalQuestions });
       }
-    });
-
-    if (existing) {
-      return NextResponse.json({ id: existing.id, score: existing.score, totalQuestions: existing.totalQuestions });
     }
 
     // Calculate score
@@ -48,8 +48,8 @@ export async function POST(request: Request) {
       data: {
         quizId: data.quizId,
         userName: data.userName,
-        userEmail: data.userEmail,
-        whatsapp: data.whatsapp,
+        userEmail: email,
+        whatsapp: data.whatsapp || null,
         agreed: data.agreed || false,
         ...(data.orgId && { orgId: data.orgId }),
         score,

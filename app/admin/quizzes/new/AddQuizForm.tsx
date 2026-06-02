@@ -26,6 +26,8 @@ export type QuizInitial = {
   eventId: string | null;
   certConfig: string | null;
   questions: QuizQuestion[];
+  collectEmail?: boolean;
+  collectPhone?: boolean;
 };
 
 export default function AddQuizForm({ events = [], initialData }: { events?: EventOption[]; initialData?: QuizInitial }) {
@@ -42,6 +44,8 @@ export default function AddQuizForm({ events = [], initialData }: { events?: Eve
     category: initialData?.category ?? 'environment',
     bgImageUrl: initialData?.bgImageUrl ?? '',
     eventId: initialData?.eventId ?? '',
+    collectEmail: initialData?.collectEmail ?? true,
+    collectPhone: initialData?.collectPhone ?? true,
   });
 
   const parsedCert = (() => {
@@ -181,6 +185,21 @@ export default function AddQuizForm({ events = [], initialData }: { events?: Eve
               {events.map(ev => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Data Capture <span className="font-normal text-gray-400 normal-case">— what the participant form asks for</span></label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 cursor-pointer transition-colors ${form.collectEmail ? 'border-teal-400 bg-teal-50/50' : 'border-gray-200 bg-gray-50'}`}>
+              <input type="checkbox" checked={form.collectEmail} onChange={e => setForm(f => ({ ...f, collectEmail: e.target.checked }))} className="w-4 h-4 accent-teal-500" />
+              <span className="text-sm font-semibold text-gray-800">Collect Email</span>
+            </label>
+            <label className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 cursor-pointer transition-colors ${form.collectPhone ? 'border-teal-400 bg-teal-50/50' : 'border-gray-200 bg-gray-50'}`}>
+              <input type="checkbox" checked={form.collectPhone} onChange={e => setForm(f => ({ ...f, collectPhone: e.target.checked }))} className="w-4 h-4 accent-teal-500" />
+              <span className="text-sm font-semibold text-gray-800">Collect Phone / WhatsApp</span>
+            </label>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">Turn off for corporate events that don&apos;t allow capturing contact details. Name is always required for the certificate.</p>
         </div>
       </div>
 

@@ -22,11 +22,11 @@ const ibmMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://communitreepledges.netlify.app'),
-  title: 'COMMUNITREE & EZONE — Small Acts. Living Forests.',
+  title: 'COMMUNITREE & EZONE — Turning Intentions Into Action.',
   description: 'Take a pledge, test what you know, and earn a personalised certificate in under a minute. Join a growing community planting man-made forests and protecting nature — no login, free forever.',
   openGraph: {
     siteName: 'COMMUNITREE & EZONE',
-    title: 'COMMUNITREE & EZONE — Small Acts. Living Forests.',
+    title: 'COMMUNITREE & EZONE — Turning Intentions Into Action.',
     description: 'Pledge, learn, and earn your certificate. Be part of the movement growing man-made forests.',
     type: 'website',
   },

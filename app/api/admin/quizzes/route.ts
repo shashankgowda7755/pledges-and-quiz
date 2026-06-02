@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { slug, title, description, category, bgImageUrl, questions, eventId, certConfig } = body;
+    const { slug, title, description, category, bgImageUrl, questions, eventId, certConfig, collectEmail, collectPhone } = body;
 
     if (!slug || !title || !description || !bgImageUrl || !questions || questions.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
         category,
         bgImageUrl,
         certConfig: certConfig || null,
+        collectEmail: collectEmail === undefined ? true : Boolean(collectEmail),
+        collectPhone: collectPhone === undefined ? true : Boolean(collectPhone),
         eventId: eventId || null,
         questions: {
           create: questions.map((q: any, i: number) => ({
