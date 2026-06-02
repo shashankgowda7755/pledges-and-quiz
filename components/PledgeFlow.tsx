@@ -465,7 +465,7 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
           disabled={!isValid}
           className={`w-full py-4 rounded-xl font-bold text-[15px] transition-all
             ${isValid
-              ? 'bg-[#e2e8f0] text-gray-900 hover:bg-[#cbd5e1] shadow-sm'
+              ? 'bg-[#1e1b4b] text-white hover:bg-[#2a2660] shadow-md'
               : 'bg-[#f1f5f9] text-gray-400 cursor-not-allowed'}`}
         >
           Continue <span className="ml-1">›</span>
