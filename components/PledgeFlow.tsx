@@ -46,7 +46,7 @@ interface UserData {
 export function PledgeFlow({ pledge, orgId }: { pledge: PledgeWithCommitments; orgId?: string }) {
   const [currentStep, setCurrentStep]         = useState<PledgeStep>('details');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true, consent: false });
+  const [userData, setUserData]               = useState<UserData>({ fullName: '', whatsapp: '', email: '', photoUrl: null, agreed: true, consent: true });
 
   const hasCommitments = pledge.commitments.length > 0;
 
@@ -379,12 +379,12 @@ function PledgeDetails({ userData, onChange, onNext, pledge }: { userData: UserD
         <div className="space-y-6 text-left mb-10">
           <div>
             <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">FULL NAME</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={userData.fullName}
-              onChange={e => onChange({ fullName: e.target.value })}
-              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
-              placeholder="John Doe"
+              onChange={e => onChange({ fullName: e.target.value.toUpperCase() })}
+              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm uppercase focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
+              placeholder="JOHN DOE"
             />
           </div>
           
@@ -531,10 +531,13 @@ function PledgePreview({ userData, pledge, onBack, onConfirm }: { userData: User
 // Step 3: Commitments (The Checkboxes) & Submission
 // -------------------------------------------------------------
 function PledgeCommitments({ pledge, userData, orgId, onBack, onSuccess }: { pledge: PledgeWithCommitments, userData: UserData, orgId?: string, onBack: () => void, onSuccess: () => void }) {
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  // All commitments start ticked — user opts out, not in.
+  const [checked, setChecked] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(pledge.commitments.map(c => [c.id, true]))
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const allChecked  = pledge.commitments.length > 0 && pledge.commitments.every(c => checked[c.id]);
 
   const handleSelectAll = () => {
@@ -719,9 +722,9 @@ function EditCertModal({ current, onSave, onClose }: {
               <input
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#1e1b4b] focus:ring-4 focus:ring-indigo-50 outline-none font-medium text-gray-900"
-                placeholder="Your name"
+                onChange={e => setName(e.target.value.toUpperCase())}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm uppercase focus:border-[#1e1b4b] focus:ring-4 focus:ring-indigo-50 outline-none font-medium text-gray-900"
+                placeholder="YOUR NAME"
               />
             </div>
           </div>

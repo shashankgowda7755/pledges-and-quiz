@@ -43,7 +43,7 @@ interface UserData {
 export function QuizFlow({ quiz, orgId, posterUrl, orgLogoUrl, logoPosition }: { quiz: QuizWithQuestions; orgId?: string; posterUrl?: string; orgLogoUrl?: string | null; logoPosition?: string | null }) {
   const [currentStep, setCurrentStep] = useState<QuizStep>('form');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, consent: false, orgId });
+  const [userData, setUserData] = useState<UserData>({ fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, consent: true, orgId });
   const [scoreData, setScoreData] = useState<{ score: number, total: number } | null>(null);
   const activePosterUrl = posterUrl ?? quiz.bgImageUrl;
 
@@ -263,7 +263,7 @@ function CameraModal({ onCapture, onClose }: { onCapture: (src: string) => void;
 
 function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data: UserData) => void }) {
   const [formData, setFormData] = useState<UserData>({
-    fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, consent: false
+    fullName: '', email: '', whatsapp: '', photoUrl: null, agreed: true, consent: true
   });
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
   const [showCamera, setShowCamera]   = useState(false);
@@ -348,9 +348,9 @@ function QuizForm({ quiz, onSubmit }: { quiz: QuizWithQuestions, onSubmit: (data
               type="text"
               required
               value={formData.fullName}
-              onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
-              placeholder="How you want your name on the certificate"
+              onChange={e => setFormData({ ...formData, fullName: e.target.value.toUpperCase() })}
+              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm uppercase focus:border-teal-400 focus:ring-4 focus:ring-teal-50 focus:bg-white transition-all outline-none text-gray-900 font-medium placeholder:text-gray-400"
+              placeholder="HOW YOU WANT YOUR NAME ON THE CERTIFICATE"
             />
           </div>
 
@@ -733,9 +733,9 @@ function EditCertModal({ current, onSave, onClose }: {
               <input
                 type="text"
                 value={name}
-                onChange={e => setName(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900"
-                placeholder="Your name"
+                onChange={e => setName(e.target.value.toUpperCase())}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm uppercase focus:border-teal-400 focus:ring-4 focus:ring-teal-50 outline-none font-medium text-gray-900"
+                placeholder="YOUR NAME"
               />
             </div>
           </div>
