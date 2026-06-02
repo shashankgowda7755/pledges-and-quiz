@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import LogoPositionEditor, { type LogoPos } from './LogoPositionEditor';
+import { downscaleImage } from '@/lib/downscaleImage';
 
 function slugify(str: string) {
   return str.toLowerCase().trim()
@@ -46,7 +47,7 @@ export default function AddOrgForm() {
     setError('');
     try {
       const fd = new FormData();
-      fd.append('file', file);
+      fd.append('file', await downscaleImage(file)); // cap at 2000px to avoid OOM
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Upload failed');

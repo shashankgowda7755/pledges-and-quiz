@@ -7,6 +7,7 @@ import {
   AlignVerticalJustifyStart, AlignVerticalJustifyCenter, AlignVerticalJustifyEnd,
 } from 'lucide-react';
 import type { CertConfig, CertNameBox, CertPhotoBox, CertImage } from '@/components/PledgePosterCanvas';
+import { downscaleImage } from '@/lib/downscaleImage';
 
 // Placement is stored in the background image's own pixel space, so coordinates
 // stay correct whatever size the user uploads. These are only the starting
@@ -204,7 +205,7 @@ export default function CertificateDesigner({
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append('file', file);
+      fd.append('file', await downscaleImage(file)); // cap at 2000px to avoid OOM in the designer
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (res.ok && data.url) {

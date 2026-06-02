@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { UploadCloud, Loader2, Link as LinkIcon } from 'lucide-react';
+import { downscaleImage } from '@/lib/downscaleImage';
 
 /**
  * Background image uploader. Uploads the file exactly as chosen — original
@@ -40,7 +41,7 @@ export default function PosterImagePicker({
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append('file', file); // original file, untouched
+      fd.append('file', await downscaleImage(file)); // cap at 2000px to avoid OOM in the designer
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Upload failed');
