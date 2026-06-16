@@ -251,12 +251,19 @@ export default function CertificateDesigner({
       const fd = new FormData();
       fd.append('file', await downscaleImage(file));
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      if (!res.ok) {
+        let msg = res.status === 413 ? 'Image too large — try a smaller file' : 'Upload failed';
+        try { const d = await res.json(); msg = d.error ?? msg; } catch { /* non-JSON error body */ }
+        throw new Error(msg);
+      }
       const data = await res.json();
-      if (res.ok && data.url) {
+      if (data.url) {
         const newImg: CertImage = { url: data.url, x: Math.round(RW * 0.09), y: Math.round(RH * 0.85), w: Math.round(RW * 0.19) };
         onChange({ ...value, images: [...images, newImg] });
         setSel({ t: 'image', i: images.length });
       }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
     }

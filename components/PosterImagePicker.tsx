@@ -43,8 +43,12 @@ export default function PosterImagePicker({
       const fd = new FormData();
       fd.append('file', await downscaleImage(file)); // cap at 2000px to avoid OOM in the designer
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      if (!res.ok) {
+        let msg = res.status === 413 ? 'Image too large — try a smaller file' : 'Upload failed';
+        try { const d = await res.json(); msg = d.error ?? msg; } catch { /* non-JSON error body */ }
+        throw new Error(msg);
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
       onChange(data.url);
     } catch (err) {
       setError('Upload failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
