@@ -19,13 +19,19 @@ export default function ExportCsvButton({ data }: { data: ActivityRecord[] }) {
     // CSV Header
     let csvContent = "Type,Participant Name,Email,WhatsApp,Activity Name,Organization,Date,Extra Data\n";
 
-    // Rows
+    const q = (v: string) => `"${v.replace(/"/g, '""')}"`;
+
     data.forEach(row => {
-      const sanitizedName = `"${row.name.replace(/"/g, '""')}"`;
-      const sanitizedActivity = `"${row.activityName.replace(/"/g, '""')}"`;
-      const sanitizedOrg = `"${row.orgName.replace(/"/g, '""')}"`;
-      
-      const rowString = `${row.type},${sanitizedName},${row.email || "N/A"},${row.whatsapp || "N/A"},${sanitizedActivity},${sanitizedOrg},${new Date(row.date).toLocaleDateString()},${row.metadata}`;
+      const rowString = [
+        row.type,
+        q(row.name),
+        q(row.email || 'N/A'),
+        q(row.whatsapp || 'N/A'),
+        q(row.activityName),
+        q(row.orgName),
+        new Date(row.date).toLocaleDateString(),
+        q(row.metadata),
+      ].join(',');
       csvContent += rowString + "\n";
     });
 

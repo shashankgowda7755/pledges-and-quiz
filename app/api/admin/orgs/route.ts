@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const token = req.cookies.get('admin_token')?.value;
+  if (token !== 'admin_authenticated') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const orgs = await prisma.organization.findMany({
     orderBy: { createdAt: 'desc' },
   });
@@ -9,6 +12,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const token = req.cookies.get('admin_token')?.value;
+  if (token !== 'admin_authenticated') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const body = await req.json();
   const { name, slug, type, quizPosterUrl, contactEmail, posterLogoUrl, posterLogoPosition } = body;
 

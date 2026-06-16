@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import EditOrgForm from './EditOrgForm';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default async function EditOrgPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   

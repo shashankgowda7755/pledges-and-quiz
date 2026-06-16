@@ -66,7 +66,7 @@ export default function CertificateDesigner({
   const photoFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadingSample, setUploadingSample] = useState(false);
-  const [imgAspect, setImgAspect] = useState<Record<number, number>>({});
+  const [imgAspect, setImgAspect] = useState<Record<string, number>>({});
   const [dims, setDims] = useState<{ w: number; h: number }>({ w: FALLBACK_W, h: FALLBACK_H });
   const [sel, setSel] = useState<Sel>(null);
   const [sampleName, setSampleName] = useState('PARTICIPANT NAME');
@@ -101,7 +101,7 @@ export default function CertificateDesigner({
     if (s.t === 'name' && name) return { w: name.maxW, h: name.fontSize };
     if (s.t === 'photo' && photo) return { w: photo.w, h: photo.h };
     if (s.t === 'text') { const t = texts[s.i]; return { w: t?.maxW ?? 0, h: t?.fontSize ?? 0 }; }
-    if (s.t === 'image') { const im = images[s.i]; return { w: im?.w ?? 0, h: (im?.w ?? 0) * (imgAspect[s.i] ?? 0.4) }; }
+    if (s.t === 'image') { const im = images[s.i]; return { w: im?.w ?? 0, h: (im?.w ?? 0) * (imgAspect[im?.url ?? ''] ?? 0.4) }; }
     return { w: 0, h: 0 };
   };
 
@@ -339,12 +339,12 @@ export default function CertificateDesigner({
 
             {/* Overlay images */}
             {images.map((im, i) => {
-              const aspect = imgAspect[i] ?? 0.4;
+              const aspect = imgAspect[im.url] ?? 0.4;
               return (
-                <div key={i} style={{ position: 'absolute', ...pctBox(im.x, im.y, im.w, im.w * aspect), cursor: 'move', outline: isSel({ t: 'image', i }) ? '2px solid #d97706' : '1px dashed rgba(217,119,6,.6)', outlineOffset: 2, borderRadius: 4 }} onMouseDown={(e) => startDrag(e, { kind: 'image-move', index: i })}>
+                <div key={im.url} style={{ position: 'absolute', ...pctBox(im.x, im.y, im.w, im.w * aspect), cursor: 'move', outline: isSel({ t: 'image', i }) ? '2px solid #d97706' : '1px dashed rgba(217,119,6,.6)', outlineOffset: 2, borderRadius: 4 }} onMouseDown={(e) => startDrag(e, { kind: 'image-move', index: i })}>
                   {/* hidden probe to read natural aspect for the handle box */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={im.url} alt="" className="hidden" onLoad={(e) => { const t = e.currentTarget; if (t.naturalWidth) setImgAspect(a => ({ ...a, [i]: t.naturalHeight / t.naturalWidth })); }} />
+                  <img src={im.url} alt="" className="hidden" onLoad={(e) => { const t = e.currentTarget; if (t.naturalWidth) setImgAspect(a => ({ ...a, [im.url]: t.naturalHeight / t.naturalWidth })); }} />
                   <Handle color="#f59e0b" onMouseDown={(e) => startDrag(e, { kind: 'image-resize', index: i })} />
                 </div>
               );
@@ -474,7 +474,7 @@ export default function CertificateDesigner({
           ) : (
             <ul className="space-y-4">
               {images.map((im, i) => (
-                <li key={i} className="border border-gray-100 rounded-lg p-3">
+                <li key={im.url} className="border border-gray-100 rounded-lg p-3">
                   <div className="flex items-center gap-3 mb-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={im.url} alt="" className="h-8 w-8 object-contain rounded border border-gray-200 bg-white" />

@@ -38,7 +38,7 @@ export default function EditOrgForm({ initialData }: { initialData: Organization
   const posterPreview = form.quizPosterUrl.trim() || DEFAULT_POSTER;
 
   const handleNameChange = (value: string) => {
-    setForm(f => ({ ...f, name: value, slug: slugify(value) }));
+    setForm(f => ({ ...f, name: value }));
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

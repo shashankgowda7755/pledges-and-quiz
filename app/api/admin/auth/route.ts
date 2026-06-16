@@ -27,7 +27,7 @@ export async function DELETE() {
   const res = NextResponse.json({ ok: true });
   res.cookies.set(COOKIE_NAME, '', {
     httpOnly: true,
-    path: '/admin',
+    path: '/',
     maxAge: 0,
   });
   return res;
