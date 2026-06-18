@@ -24,6 +24,8 @@ export type CertificateInitial = {
   eventDate: string | Date | null;
   eventId: string | null;
   certConfig: string | null;
+  collectEmail?: boolean;
+  collectPhone?: boolean;
 };
 
 function toDateInput(d: string | Date | null | undefined) {
@@ -47,6 +49,8 @@ export default function AddCertificateForm({ events = [], initialData }: { event
     bgImageUrl: initialData?.bgImageUrl ?? '',
     eventDate: toDateInput(initialData?.eventDate),
     eventId: initialData?.eventId ?? '',
+    collectEmail: initialData?.collectEmail ?? true,
+    collectPhone: initialData?.collectPhone ?? true,
   });
 
   const parsedCert = (() => {
@@ -75,6 +79,8 @@ export default function AddCertificateForm({ events = [], initialData }: { event
         impactPerUnit: 1,
         commitments: [],
         certConfig: certConfigured ? JSON.stringify(cert) : null,
+        collectEmail: form.collectEmail,
+        collectPhone: form.collectPhone,
       };
       const url = isEdit ? `/api/admin/pledges/${initialData!.slug}` : '/api/admin/pledges';
       const res = await fetch(url, {
@@ -145,6 +151,21 @@ export default function AddCertificateForm({ events = [], initialData }: { event
       <div className="space-y-6 pt-4 border-t border-gray-100">
         <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Certificate Background <span className="text-xs font-normal text-gray-400">(any size — original kept)</span></h3>
         <PosterImagePicker required value={form.bgImageUrl} onChange={(url) => setForm(f => ({ ...f, bgImageUrl: url }))} />
+      </div>
+
+      <div className="space-y-4 pt-4 border-t border-gray-100">
+        <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Contact Collection</h3>
+        <p className="text-xs text-gray-500">Choose which fields participants must fill in before downloading their certificate.</p>
+        <div className="flex flex-wrap gap-3">
+          <label className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 cursor-pointer transition-colors ${form.collectEmail ? 'border-teal-400 bg-teal-50/50' : 'border-gray-200 bg-gray-50'}`}>
+            <input type="checkbox" checked={form.collectEmail} onChange={e => setForm(f => ({ ...f, collectEmail: e.target.checked }))} className="w-4 h-4 accent-teal-500" />
+            <span className="text-sm font-semibold text-gray-700">Collect Email</span>
+          </label>
+          <label className={`flex items-center gap-3 rounded-xl border px-4 py-3.5 cursor-pointer transition-colors ${form.collectPhone ? 'border-teal-400 bg-teal-50/50' : 'border-gray-200 bg-gray-50'}`}>
+            <input type="checkbox" checked={form.collectPhone} onChange={e => setForm(f => ({ ...f, collectPhone: e.target.checked }))} className="w-4 h-4 accent-teal-500" />
+            <span className="text-sm font-semibold text-gray-700">Collect Phone / WhatsApp</span>
+          </label>
+        </div>
       </div>
 
       <div className="space-y-4 pt-4 border-t border-gray-100">

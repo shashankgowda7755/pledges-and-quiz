@@ -38,6 +38,8 @@ export default async function EditCertificatePage(context: { params: Promise<{ s
             eventDate: pledge.eventDate,
             eventId: pledge.eventId,
             certConfig: pledge.certConfig,
+            collectEmail: pledge.collectEmail,
+            collectPhone: pledge.collectPhone,
           }}
         />
       </div>
